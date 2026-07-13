@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.7 -->
+<!-- v1.9 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -78,6 +78,14 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .log-wrap{max-width:1400px;margin:0 auto;padding:20px 16px}
 .log-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
 .log-hdr h2{font-size:1.2rem;font-weight:800;color:var(--navy)}
+.log-filter-chip{display:flex;align-items:center;gap:8px;background:var(--light);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:9px 14px;margin-bottom:14px;font-size:.82rem;color:var(--navy)}
+.log-filter-chip button{background:none;border:none;color:var(--red);font-weight:700;font-size:.78rem;cursor:pointer;padding:2px 6px;border-radius:5px}
+.log-filter-chip button:hover{background:#FFE8EC}
+.cs em{font-style:normal;color:var(--sky);opacity:.85}
+#heatmap .hm-cell{cursor:default}
+#heatmap .hm-cell.has-trip{cursor:pointer;transition:transform .1s}
+#heatmap .hm-cell.has-trip:hover{transform:scale(1.35)}
+.grid canvas{cursor:pointer}
 .log-search{padding:8px 12px;border:1.5px solid #D0DCE8;border-radius:7px;font-size:.85rem;width:280px}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
 table{width:100%;border-collapse:collapse;font-size:.75rem}
@@ -221,7 +229,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
     <div class="nav-brand"><img src="data:image/png;base64,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" style="height:1.3em;vertical-align:middle;display:inline-block;filter:brightness(0) invert(1);margin-right:6px" alt="">Steve Harding <span>RYA Skipper</span></div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
-      <button class="nav-tab" onclick="showView('log',this)">Log Book</button>
+      <button class="nav-tab" onclick="clearLogFilter();showView('log',this)">Log Book</button>
       <button class="nav-tab" onclick="showView('quicklog',this)">Quick Log</button>
       <button class="nav-tab" onclick="showView('entry',this)">Manual Log</button>
     </div>
@@ -295,16 +303,16 @@ tbody tr.clickable:hover{background:#dae8f5!important}
   <div class="grid">
     <div class="card s12">
       <div class="ct">Six Years of Seamanship &mdash; Trip Activity Calendar</div>
-      <div class="cs">Every trip day 2020&ndash;2026 &middot; seasonal rhythm and consistent commitment</div>
+      <div class="cs">Every trip day 2020&ndash;2026 &middot; seasonal rhythm and consistent commitment &middot; <em>click a day to see its log</em></div>
       <div id="heatmap-container"><div id="heatmap"></div></div>
       <div class="insights" id="hm-insights"></div>
     </div>
-    <div class="card s12"><div class="ct">Monthly Trip Frequency</div><div class="cs">Bar = trips &middot; line = 3-month rolling average &middot; seasonal rhythm across 6 years of active seamanship</div><div style="height:220px"><canvas id="ch-monthly"></canvas></div></div>
-    <div class="card s5"><div class="ct">Weather Window Decision Making</div><div class="cs">ERA5-verified &middot; demonstrates seamanship judgement</div><div style="height:200px"><canvas id="ch-wind-dec"></canvas></div></div>
-    <div class="card s4"><div class="ct">Wind Direction Profile</div><div class="cs">SW dominant across all seasons</div><div style="height:260px"><canvas id="ch-wind-dir"></canvas></div></div>
-    <div class="card s3"><div class="ct">Local Waters Familiarity</div><div class="cs">Poole Harbour, Studland &amp; Dorset coast</div><div style="height:200px"><canvas id="ch-dest"></canvas></div></div>
-    <div class="card s6"><div class="ct">Annual Hours &amp; Miles</div><div class="cs">Consistent experience building year on year</div><div style="height:220px"><canvas id="ch-annual"></canvas></div></div>
-    <div class="card s6"><div class="ct">Hours by Vessel</div><div class="cs">Multi-vessel experience across twin and single engine</div><div style="height:220px"><canvas id="ch-vessel"></canvas></div></div>
+    <div class="card s12"><div class="ct">Monthly Trip Frequency</div><div class="cs">Bar = trips &middot; line = 3-month rolling average &middot; seasonal rhythm across 6 years of active seamanship &middot; <em>click a bar to see that month's log</em></div><div style="height:220px"><canvas id="ch-monthly"></canvas></div></div>
+    <div class="card s5"><div class="ct">Weather Window Decision Making</div><div class="cs">ERA5-verified &middot; demonstrates seamanship judgement &middot; <em>click a bar for those trips</em></div><div style="height:200px"><canvas id="ch-wind-dec"></canvas></div></div>
+    <div class="card s4"><div class="ct">Wind Direction Profile</div><div class="cs">SW dominant across all seasons &middot; <em>click a point for those trips</em></div><div style="height:260px"><canvas id="ch-wind-dir"></canvas></div></div>
+    <div class="card s3"><div class="ct">Local Waters Familiarity</div><div class="cs">Poole Harbour, Studland &amp; Dorset coast &middot; <em>click a bar for those trips</em></div><div style="height:200px"><canvas id="ch-dest"></canvas></div></div>
+    <div class="card s6"><div class="ct">Annual Hours &amp; Miles</div><div class="cs">Consistent experience building year on year &middot; <em>click a bar for that year's log</em></div><div style="height:220px"><canvas id="ch-annual"></canvas></div></div>
+    <div class="card s6"><div class="ct">Hours by Vessel</div><div class="cs">Multi-vessel experience across twin and single engine &middot; <em>click a slice for those trips</em></div><div style="height:220px"><canvas id="ch-vessel"></canvas></div></div>
   </div>
 </div>
 
@@ -312,7 +320,11 @@ tbody tr.clickable:hover{background:#dae8f5!important}
   <div class="log-wrap">
     <div class="log-hdr">
       <h2>Log Book <span id="log-count" style="font-size:.85rem;color:var(--muted);font-weight:400"></span></h2>
-      <input class="log-search" type="text" placeholder="Search..." oninput="filterLog(this.value)">
+      <input class="log-search" id="log-search-input" type="text" placeholder="Search..." oninput="filterLog(this.value)">
+    </div>
+    <div id="log-filter-chip" class="log-filter-chip" style="display:none">
+      <span>&#128269; Filtered from dashboard:</span> <strong class="chip-label"></strong>
+      <button onclick="clearLogFilter()">&#10005; Clear</button>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -546,7 +558,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.7';
+var APP_VERSION = '1.9';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -689,7 +701,7 @@ function loadLog(){
   tb.innerHTML='<tr><td colspan="18" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
   jsonp(SCRIPT_URL+'?action=log',function(err,d){
     if(err||!d||d.error){tb.innerHTML='<tr><td colspan="18" style="text-align:center;padding:30px;color:var(--red)">Could not load</td></tr>';return;}
-    allEntries=d.entries.slice().reverse();window._ll=true;renderLog(allEntries);
+    allEntries=d.entries.slice().reverse();window._ll=true;applyLogFilters();
   });
 }
 function renderLog(entries){
@@ -705,7 +717,67 @@ function renderLog(entries){
     var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');var gpxLink=e.gpxUrl?('<a href="'+e.gpxUrl+'" target="_blank" style="color:var(--green);font-size:.75rem">&#127758; Track</a>'):'--';var cumH=Math.round(Number(e.cumHrs)*10)/10;var cumM=Math.round(Number(e.cumMiles)*10)/10;var ei=e;return '<tr class="clickable" onclick="openTripPanel(allEntries['+idx+'])"><td><strong>'+sd+'</strong></td><td>'+(sd&&ed&&sd!==ed?ed:'')+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+cumH+'</strong></td><td>'+e.miles+'</td><td><strong>'+cumM+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td><td>'+gpxLink+'</td></tr>';
   }).join('');
 }
-function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
+/* ── Dashboard → Log Book drill-down ─────────────────────────────────────
+   logChipFilter is an optional predicate(entry)->bool set by clicking a
+   dashboard chart/heatmap cell. applyLogFilters() composes it with the
+   free-text search box so both can be active together. */
+var logChipFilter=null, logChipLabel='';
+function applyLogFilters(){
+  var input=document.getElementById('log-search-input');
+  var q=input?input.value:'';
+  var base=logChipFilter?allEntries.filter(logChipFilter):allEntries;
+  if(q){
+    var lq=q.toLowerCase();
+    base=base.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});});
+  }
+  renderLog(base);
+}
+function filterLog(q){ applyLogFilters(); }
+function findNavTab(viewName){
+  var tabs=document.querySelectorAll('.nav-tab:not(.refresh)');
+  for(var i=0;i<tabs.length;i++){
+    if(tabs[i].getAttribute('onclick')==="showView('"+viewName+"',this)") return tabs[i];
+  }
+  return null;
+}
+function goToFilteredLog(predicateFn, label){
+  logChipFilter=predicateFn; logChipLabel=label;
+  var chip=document.getElementById('log-filter-chip');
+  if(chip){ chip.style.display='flex'; chip.querySelector('.chip-label').textContent=label; }
+  var input=document.getElementById('log-search-input'); if(input) input.value='';
+  showView('log', findNavTab('log'));
+  if(window._ll) applyLogFilters();
+}
+function clearLogFilter(){
+  logChipFilter=null; logChipLabel='';
+  var chip=document.getElementById('log-filter-chip'); if(chip) chip.style.display='none';
+  applyLogFilters();
+}
+function catDest(det){
+  var d=(det||'').toLowerCase();
+  if(d.indexOf('studland')>-1||d.indexOf('old harry')>-1)return'Studland / Old Harry';
+  if(d.indexOf('bournemouth')>-1)return'Bournemouth';
+  if(d.indexOf('wareham')>-1||d.indexOf('pottery')>-1)return'Wareham River';
+  if(d.indexOf('chapmans')>-1)return'Chapmans Pool';
+  if(d.indexOf('bridport')>-1)return'Bridport';
+  return'Poole Harbour';
+}
+function destClickPredicate(label){
+  var known=['Poole Harbour','Studland / Old Harry','Bournemouth','Wareham River','Chapmans Pool','Bridport'];
+  if(known.indexOf(label)>-1) return function(e){ return catDest(e.details)===label; };
+  var lq=label.toLowerCase();
+  return function(e){ return (e.details||'').toLowerCase().indexOf(lq)>-1 || (e.to||'').toLowerCase().indexOf(lq)>-1 || (e.from||'').toLowerCase().indexOf(lq)>-1; };
+}
+function vesselClickPredicate(label){
+  var lq=label.split('(')[0].trim().toLowerCase();
+  var lq2=(label.match(/\(([^)]+)\)/)||[,''])[1].toLowerCase();
+  return function(e){
+    var hay=((e.vessel||'')+' '+(e.boatName||'')+' '+(e.engines||'')).toLowerCase();
+    if(lq && hay.indexOf(lq)>-1) return true;
+    if(lq2 && hay.indexOf(lq2)>-1) return true;
+    return false;
+  };
+}
 var PASSCODE = '0326';
 
 function initPasscodeBoxes(groupSelector, onSuccess, onFail){
@@ -847,10 +919,8 @@ function refreshCharts(btn){
     var dc={};dirOrder.forEach(function(dir){dc[dir]=0;});
     entries.forEach(function(e){if(e.windDir&&dc[e.windDir]!==undefined)dc[e.windDir]++;});
     window.CH['wind-dir'].data.datasets[0].data=dirOrder.map(function(dir){return dc[dir]||0;});window.CH['wind-dir'].update();
-    function catD(det){var d=(det||'').toLowerCase();if(d.indexOf('studland')>-1||d.indexOf('old harry')>-1)return'Studland / Old Harry';if(d.indexOf('bournemouth')>-1)return'Bournemouth';if(d.indexOf('wareham')>-1||d.indexOf('pottery')>-1)return'Wareham River';if(d.indexOf('chapmans')>-1)return'Chapmans Pool';if(d.indexOf('bridport')>-1)return'Bridport';return'Poole Harbour';}
-    var destO=['Poole Harbour','Studland / Old Harry','Bournemouth','Wareham River','Chapmans Pool','Isle of Wight','Bridport'];
-    var destC={};entries.forEach(function(e){var c=catD(e.details);destC[c]=(destC[c]||0)+1;});
-    window.CH['dest'].data.datasets[0].data=destO.map(function(d){return destC[d]||0;});window.CH['dest'].update();
+    var destC={};entries.forEach(function(e){var c=catDest(e.details);destC[c]=(destC[c]||0)+1;});
+    window.CH['dest'].data.datasets[0].data=window.CH['dest'].data.labels.map(function(d){return destC[d]||0;});window.CH['dest'].update();
     var yh={},ymi={};
     entries.forEach(function(e){
       var dt=e.startDate;var y;
@@ -895,6 +965,12 @@ function buildHeatmap(){
       if(dow===1&&col.children.length>0){wd.appendChild(col);col=document.createElement('div');col.className='hm-col';}
       var ds=fd(day);var cnt=HM[ds]||0;
       var cell=document.createElement('div');cell.className='hm-cell';cell.style.background=gc(cnt);cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':''):': no trip');
+      if(cnt>0){
+        cell.classList.add('has-trip');
+        cell.addEventListener('click', (function(dateStr){
+          return function(){ goToFilteredLog(function(e){ return e.startDate===dateStr; }, 'Trips on '+dateStr); };
+        })(ds));
+      }
       col.appendChild(cell);
     });
     if(col.children.length>0)wd.appendChild(col);
@@ -914,27 +990,68 @@ window.CH['monthly']=new Chart(document.getElementById('ch-monthly'),{
     {label:'Trips',data:[5, 12, 14, 10, 5, 2, 3, 0, 0, 5, 5, 7, 13, 15, 14, 11, 4, 4, 2, 0, 0, 5, 5, 7, 14, 14, 14, 11, 4, 2, 2, 0, 0, 5, 5, 7, 14, 15, 14, 11, 4, 3, 2, 0, 0, 5, 5, 7, 14, 14, 14, 11, 4, 4, 2, 0, 0, 5, 13, 16, 17, 16, 14, 11, 4, 3, 3, 0, 0, 5, 6, 7, 6],backgroundColor:["#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6", "#2E75B6", "#5BA3D9", "#5BA3D9", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#D0E4F4", "#5BA3D9", "#5BA3D9", "#2E75B6", "#2E75B6"],borderRadius:3,yAxisID:'y'},
     {label:'3-Month Avg',data:[8.5, 10.3, 12.0, 9.7, 5.7, 3.3, 1.7, 1.0, 1.7, 3.3, 5.7, 8.3, 11.7, 14.0, 13.3, 9.7, 6.3, 3.3, 2.0, 0.7, 1.7, 3.3, 5.7, 8.7, 11.7, 14.0, 13.0, 9.7, 5.7, 2.7, 1.3, 0.7, 1.7, 3.3, 5.7, 8.7, 12.0, 14.3, 13.3, 9.7, 6.0, 3.0, 1.7, 0.7, 1.7, 3.3, 5.7, 8.7, 11.7, 14.0, 13.0, 9.7, 6.3, 3.3, 2.0, 0.7, 1.7, 6.0, 11.3, 15.3, 16.3, 15.7, 13.7, 9.7, 6.0, 3.3, 2.0, 1.0, 1.7, 3.7, 6.0, 6.3, 6.5],type:'line',borderColor:C,borderWidth:2,pointRadius:0,tension:.4,fill:false,yAxisID:'y'}
   ]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Segoe UI',size:11}}}},scales:{x:{ticks:{maxRotation:60,font:{size:8},maxTicksLimit:30}},y:{beginAtZero:true,type:'linear',position:'left'}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Segoe UI',size:11}}}},scales:{x:{ticks:{maxRotation:60,font:{size:8},maxTicksLimit:30}},y:{beginAtZero:true,type:'linear',position:'left'}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var ym=window.CH['monthly'].data.labels[idx];
+      goToFilteredLog(function(e){return (e.startDate||'').indexOf(ym)===0;}, ym+' trips');
+    }}
 });
 window.CH['wind-dec']=new Chart(document.getElementById('ch-wind-dec'),{
   type:'bar',data:{labels:['Calm (0-5 kn)','Light (6-10 kn)','Moderate (11-15 kn)','Fresh (16-20 kn)'],datasets:[{label:'Trips',data:[109,247,109,27],backgroundColor:[T,G,A,C],borderRadius:6}]},
-  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var ranges=[[0,5],[6,10],[11,15],[16,20]];
+      var lo=ranges[idx][0], hi=ranges[idx][1];
+      var label=window.CH['wind-dec'].data.labels[idx];
+      goToFilteredLog(function(e){var wk=Number(e.windKnots);return !isNaN(wk)&&wk>=lo&&wk<=hi;}, label+' trips');
+    }}
 });
 window.CH['wind-dir']=new Chart(document.getElementById('ch-wind-dir'),{
   type:'radar',data:{labels:["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"],datasets:[{label:'Trips',data:[17, 31, 32, 18, 20, 19, 21, 16, 26, 32, 64, 73, 46, 24, 33, 22],backgroundColor:'rgba(46,117,182,0.15)',borderColor:N,borderWidth:2,pointBackgroundColor:N,pointRadius:3}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,ticks:{font:{size:8},backdropColor:'transparent',maxTicksLimit:4},pointLabels:{font:{size:10,weight:'bold'}}}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,ticks:{font:{size:8},backdropColor:'transparent',maxTicksLimit:4},pointLabels:{font:{size:10,weight:'bold'}}}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var dir=window.CH['wind-dir'].data.labels[idx];
+      goToFilteredLog(function(e){return e.windDir===dir;}, 'Wind from '+dir);
+    }}
 });
 window.CH['dest']=new Chart(document.getElementById('ch-dest'),{
   type:'bar',data:{labels:["Poole Harbour", "Studland / Old Harry", "Bournemouth", "Wareham River", "Chapmans Pool", "Bridport", "Channel Islands"],datasets:[{label:'Trips',data:[252, 191, 40, 9, 3, 1, 1],backgroundColor:[B,S,C,G,A,T,P,'#F59E0B'],borderRadius:5}]},
-  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var label=window.CH['dest'].data.labels[idx];
+      goToFilteredLog(destClickPredicate(label), label+' trips');
+    }}
 });
 window.CH['annual']=new Chart(document.getElementById('ch-annual'),{
   type:'bar',data:{labels:["2005 (Aug+)", "2010", "2020", "2021", "2022", "2023", "2024", "2025", "2026 (to Jul)"],datasets:[{label:'Hours',data:[168.0, 96.0, 181.0, 267.1, 267.1, 618.3, 272.6, 285.2, 79.6],backgroundColor:N,borderRadius:4},{label:'Miles (nm)',data:[120.0, 75.0, 392.0, 662.0, 693.0, 988.0, 655.0, 849.0, 273.0],backgroundColor:G,borderRadius:4}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Segoe UI',size:11}}}},scales:{y:{beginAtZero:true}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Segoe UI',size:11}}}},scales:{y:{beginAtZero:true}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var label=window.CH['annual'].data.labels[idx];
+      var yearMatch=label.match(/\d{4}/);
+      if(!yearMatch)return;
+      var year=yearMatch[0];
+      goToFilteredLog(function(e){return (e.startDate||'').indexOf(year)===0;}, year+' trips');
+    }}
 });
 window.CH['vessel']=new Chart(document.getElementById('ch-vessel'),{
   type:'doughnut',data:{labels:["Baby Blush (Volvo AD41A)", "Baby Blush (Mercruiser 6.2L)", "Highfield RIB", "Other"],datasets:[{data:[1335.7, 168.0, 131.3, 600.0],backgroundColor:[N,B,T,A],borderWidth:3,borderColor:'#fff'}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}}}
+  options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},
+    onClick:function(evt,elements){
+      if(!elements.length)return;
+      var idx=elements[0].index;
+      var label=window.CH['vessel'].data.labels[idx];
+      goToFilteredLog(vesselClickPredicate(label), label+' trips');
+    }}
 });
 document.getElementById('f-start-date').valueAsDate=new Date();
 document.getElementById('f-end-date').valueAsDate=new Date();
