@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<!-- v1.4 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -321,7 +322,7 @@ function jsonp(url,cb){
 function loadSummary(){
   setStatus(false,'Connecting...');
   jsonp(SCRIPT_URL+'?action=summary',function(err,d){
-    if(err||!d||d.error){setStatus(false,'Offline');return;}
+    if(err||!d||d.error){setStatus(false,'Offline - '+((err&&err.message)||'no data'));return;}
     document.getElementById('h-trips').textContent=Number(d.totalTrips).toLocaleString();
     document.getElementById('h-hrs').textContent=Number(d.totalHrs).toFixed(1);
     document.getElementById('h-miles').textContent=Number(d.totalMiles).toLocaleString();
