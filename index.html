@@ -338,16 +338,16 @@ function refreshCharts(btn){
     window.CH['annual'].data.labels=yrs.map(function(y){return y+(y==='2020'?' (Jul+)':y==='2026'?' (to Jul)':'');});
     window.CH['annual'].data.datasets[0].data=yrs.map(function(y){return Math.round(yh[y]*10)/10;});
     window.CH['annual'].data.datasets[1].data=yrs.map(function(y){return Math.round(ymi[y]);});window.CH['annual'].update();
-    var hm={};entries.forEach(function(e){hm[e.date]=(hm[e.date]||0)+1;});
-    var clrs=['#F0F4F8','#B8D4E8','#5BA3D9','#2E75B6'];
-    document.querySelectorAll('.hm-cell').forEach(function(cell){var ds=cell.title.slice(0,10);var c=hm[ds]||0;cell.style.background=c===0?clrs[0]:c===1?clrs[1]:c===2?clrs[2]:clrs[3];});
+    // Rebuild heatmap to prevent it going blank
+    document.getElementById('heatmap').innerHTML='';
+    buildHeatmap();
     btn.innerHTML='&#10003; Updated';btn.style.color='var(--green)';
     setTimeout(function(){btn.innerHTML='&#8635; Update';btn.style.color='';},3000);
   });
 }
 
 // Build heatmap
-(function(){
+function buildHeatmap(){
   var container=document.getElementById('heatmap');
   var clrs=['#F0F4F8','#B8D4E8','#5BA3D9','#2E75B6'];
   function gc(c){return c===0?clrs[0]:c===1?clrs[1]:c===2?clrs[2]:clrs[3];}
@@ -375,7 +375,8 @@ function refreshCharts(btn){
     if(col.children.length>0)wd.appendChild(col);
     mDiv.appendChild(wd);container.appendChild(mDiv);
   });
-})();
+}
+buildHeatmap();
 
 // Build charts - data embedded directly as literals
 window.CH = {};
