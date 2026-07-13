@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.6 -->
+<!-- v1.7 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -122,7 +122,12 @@ tbody td{padding:7px 10px;border-bottom:1px solid #EEF2F6;white-space:nowrap}
 .gate{text-align:center;padding:50px 20px}
 .gate h2{color:var(--navy);font-size:1.3rem;font-weight:800;margin-bottom:8px}
 .gate p{color:var(--muted);font-size:.88rem;margin-bottom:20px}
-.gate input{font-size:1.6rem;letter-spacing:8px;text-align:center;width:110px;padding:10px;border:2px solid var(--blue);border-radius:10px;outline:none}
+.pc-boxes{display:flex;gap:12px;justify-content:center;margin-top:4px}
+.pc-box{width:52px;height:60px;font-size:1.7rem;text-align:center;border:2px solid var(--blue);border-radius:10px;outline:none;font-weight:700;color:var(--navy);transition:border-color .15s,box-shadow .15s}
+.pc-box:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,117,182,.18)}
+.pc-box.error{border-color:var(--red);animation:pc-shake .35s}
+@keyframes pc-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@media(max-width:400px){.pc-box{width:44px;height:54px;font-size:1.4rem}}
 footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border-top:1px solid var(--light)}
 
 /* ── App modal (replaces native confirm/alert) ── */
@@ -324,7 +329,12 @@ tbody tr.clickable:hover{background:#dae8f5!important}
       <div style="font-size:2rem;margin-bottom:12px">&#128274;</div>
       <h2>Skipper Access</h2>
       <p>Enter passcode to add a log entry</p>
-      <input type="password" id="passcode-input" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" oninput="checkPasscode(this.value)" inputmode="numeric">
+      <div class="pc-boxes" id="pc-boxes-entry">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      </div>
       <div id="passcode-err" style="color:var(--red);font-size:.8rem;margin-top:10px;display:none">Incorrect passcode</div>
     </div>
     <div id="entry-form" style="display:none">
@@ -393,7 +403,12 @@ tbody tr.clickable:hover{background:#dae8f5!important}
       <div style="font-size:2rem;margin-bottom:12px">&#128274;</div>
       <h2>Skipper Access</h2>
       <p>Enter passcode to access Quick Log</p>
-      <input type="password" id="ql-passcode-input" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" oninput="checkQLPasscode(this.value)" inputmode="numeric">
+      <div class="pc-boxes" id="pc-boxes-ql">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <input type="password" class="pc-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      </div>
       <div id="ql-passcode-err" style="color:var(--red);font-size:.8rem;margin-top:10px;display:none">Incorrect passcode</div>
     </div>
     <div id="ql-content" style="display:none">
@@ -531,7 +546,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.6';
+var APP_VERSION = '1.7';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -614,7 +629,23 @@ function showView(name,tab){
   document.getElementById('view-'+name).classList.add('active');
   if(tab&&!tab.classList.contains('refresh'))tab.classList.add('active');
   if(name==='log'&&!window._ll)loadLog();
-  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}if(name!=='quicklog'){qlFullReset&&qlFullReset();var qg=document.getElementById('ql-passcode-gate');var qc=document.getElementById('ql-content');if(qg)qg.style.display='block';if(qc)qc.style.display='none';var qi=document.getElementById('ql-passcode-input');if(qi)qi.value='';}
+  if(name!=='entry'){
+    document.getElementById('passcode-gate').style.display='block';
+    document.getElementById('entry-form').style.display='none';
+    resetPasscodeBoxes('#pc-boxes-entry');
+  } else if(document.getElementById('passcode-gate').style.display!=='none'){
+    focusPasscodeBoxes('#pc-boxes-entry');
+  }
+  if(name!=='quicklog'){
+    qlFullReset&&qlFullReset();
+    var qg=document.getElementById('ql-passcode-gate');
+    var qc=document.getElementById('ql-content');
+    if(qg)qg.style.display='block';
+    if(qc)qc.style.display='none';
+    resetPasscodeBoxes('#pc-boxes-ql');
+  } else if(document.getElementById('ql-passcode-gate').style.display!=='none'){
+    focusPasscodeBoxes('#pc-boxes-ql');
+  }
 }
 function setStatus(live,txt){document.getElementById('sDot').className='status-dot'+(live?' live':'');document.getElementById('sTxt').textContent=txt;}
 function jsonp(url,cb){
@@ -675,30 +706,66 @@ function renderLog(entries){
   }).join('');
 }
 function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
-function checkQLPasscode(val){
-  if(val.length===4){
-    if(val==='0326'){
-      document.getElementById('ql-passcode-gate').style.display='none';
-      document.getElementById('ql-content').style.display='block';
-      document.getElementById('ql-passcode-input').value='';
-      qlInit();
-    } else {
-      document.getElementById('ql-passcode-err').style.display='block';
-      setTimeout(function(){
-        document.getElementById('ql-passcode-input').value='';
-        document.getElementById('ql-passcode-err').style.display='none';
-      },1200);
-    }
-  } else {
-    document.getElementById('ql-passcode-err').style.display='none';
-  }
+var PASSCODE = '0326';
+
+function initPasscodeBoxes(groupSelector, onSuccess, onFail){
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(groupSelector+' .pc-box'));
+  boxes.forEach(function(box, i){
+    box.addEventListener('input', function(){
+      box.value = box.value.replace(/[^0-9]/g,'').slice(-1);
+      if(box.value && i < boxes.length-1) boxes[i+1].focus();
+      var entered = boxes.map(function(b){ return b.value; }).join('');
+      if(entered.length === boxes.length){
+        if(entered === PASSCODE) onSuccess();
+        else failPasscodeBoxes(boxes, onFail);
+      }
+    });
+    box.addEventListener('keydown', function(e){
+      if(e.key==='Backspace' && !box.value && i>0) boxes[i-1].focus();
+    });
+    box.addEventListener('focus', function(){ box.select(); });
+  });
+  return boxes;
 }
-function checkPasscode(val){
-  if(val.length===4){
-    if(val==='0326'){document.getElementById('passcode-gate').style.display='none';document.getElementById('entry-form').style.display='block';document.getElementById('passcode-input').value='';if(window._qlPendingFill)qlDoFill();}
-    else{document.getElementById('passcode-err').style.display='block';setTimeout(function(){document.getElementById('passcode-input').value='';document.getElementById('passcode-err').style.display='none';},1200);}
-  }else{document.getElementById('passcode-err').style.display='none';}
+function failPasscodeBoxes(boxes, onFail){
+  boxes.forEach(function(b){ b.classList.add('error'); });
+  if(onFail) onFail();
+  setTimeout(function(){
+    boxes.forEach(function(b){ b.classList.remove('error'); b.value=''; });
+    boxes[0].focus();
+  }, 550);
 }
+function resetPasscodeBoxes(groupSelector){
+  document.querySelectorAll(groupSelector+' .pc-box').forEach(function(b){ b.value=''; b.classList.remove('error'); });
+}
+function focusPasscodeBoxes(groupSelector){
+  setTimeout(function(){
+    var first = document.querySelector(groupSelector+' .pc-box');
+    if(first) first.focus();
+  }, 60);
+}
+
+initPasscodeBoxes('#pc-boxes-entry', function(){
+  document.getElementById('passcode-err').style.display='none';
+  document.getElementById('passcode-gate').style.display='none';
+  document.getElementById('entry-form').style.display='block';
+  resetPasscodeBoxes('#pc-boxes-entry');
+  if(window._qlPendingFill) qlDoFill();
+}, function(){
+  document.getElementById('passcode-err').style.display='block';
+  setTimeout(function(){ document.getElementById('passcode-err').style.display='none'; }, 550);
+});
+
+initPasscodeBoxes('#pc-boxes-ql', function(){
+  document.getElementById('ql-passcode-err').style.display='none';
+  document.getElementById('ql-passcode-gate').style.display='none';
+  document.getElementById('ql-content').style.display='block';
+  resetPasscodeBoxes('#pc-boxes-ql');
+  qlInit();
+}, function(){
+  document.getElementById('ql-passcode-err').style.display='block';
+  setTimeout(function(){ document.getElementById('ql-passcode-err').style.display='none'; }, 550);
+});
 function handleTripType(){
   var v=document.getElementById('f-triptype').value;
   if(v==='Return'){var sd=document.getElementById('f-start-date').value;if(sd)document.getElementById('f-end-date').value=sd;}
