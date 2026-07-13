@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.9 -->
+<!-- v1.11 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -79,8 +79,8 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .log-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
 .log-hdr h2{font-size:1.2rem;font-weight:800;color:var(--navy)}
 .log-filter-chip{display:flex;align-items:center;gap:8px;background:var(--light);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:9px 14px;margin-bottom:14px;font-size:.82rem;color:var(--navy)}
-.log-filter-chip button{background:none;border:none;color:var(--red);font-weight:700;font-size:.78rem;cursor:pointer;padding:2px 6px;border-radius:5px}
-.log-filter-chip button:hover{background:#FFE8EC}
+.log-filter-chip button{background:none;border:none;color:var(--navy);font-weight:700;font-size:.78rem;cursor:pointer;padding:2px 8px;border-radius:5px}
+.log-filter-chip button:hover{background:var(--light)}
 .cs em{font-style:normal;color:var(--sky);opacity:.85}
 #heatmap .hm-cell{cursor:default}
 #heatmap .hm-cell.has-trip{cursor:pointer;transition:transform .1s}
@@ -324,7 +324,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
     </div>
     <div id="log-filter-chip" class="log-filter-chip" style="display:none">
       <span>&#128269; Filtered from dashboard:</span> <strong class="chip-label"></strong>
-      <button onclick="clearLogFilter()">&#10005; Clear</button>
+      <button onclick="returnToDashboard()">&#8592; Return</button>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -558,7 +558,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.9';
+var APP_VERSION = '1.11';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -752,6 +752,10 @@ function clearLogFilter(){
   logChipFilter=null; logChipLabel='';
   var chip=document.getElementById('log-filter-chip'); if(chip) chip.style.display='none';
   applyLogFilters();
+}
+function returnToDashboard(){
+  clearLogFilter();
+  showView('dashboard', findNavTab('dashboard'));
 }
 function catDest(det){
   var d=(det||'').toLowerCase();
@@ -968,7 +972,7 @@ function buildHeatmap(){
       if(cnt>0){
         cell.classList.add('has-trip');
         cell.addEventListener('click', (function(dateStr){
-          return function(){ goToFilteredLog(function(e){ return e.startDate===dateStr; }, 'Trips on '+dateStr); };
+          return function(){ goToFilteredLog(function(e){ return fmtDate(e.startDate)===dateStr; }, 'Trips on '+dateStr); };
         })(ds));
       }
       col.appendChild(cell);
@@ -995,7 +999,7 @@ window.CH['monthly']=new Chart(document.getElementById('ch-monthly'),{
       if(!elements.length)return;
       var idx=elements[0].index;
       var ym=window.CH['monthly'].data.labels[idx];
-      goToFilteredLog(function(e){return (e.startDate||'').indexOf(ym)===0;}, ym+' trips');
+      goToFilteredLog(function(e){return fmtDate(e.startDate).indexOf(ym)===0;}, ym+' trips');
     }}
 });
 window.CH['wind-dec']=new Chart(document.getElementById('ch-wind-dec'),{
@@ -1040,7 +1044,7 @@ window.CH['annual']=new Chart(document.getElementById('ch-annual'),{
       var yearMatch=label.match(/\d{4}/);
       if(!yearMatch)return;
       var year=yearMatch[0];
-      goToFilteredLog(function(e){return (e.startDate||'').indexOf(year)===0;}, year+' trips');
+      goToFilteredLog(function(e){return fmtDate(e.startDate).indexOf(year)===0;}, year+' trips');
     }}
 });
 window.CH['vessel']=new Chart(document.getElementById('ch-vessel'),{
