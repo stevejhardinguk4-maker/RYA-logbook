@@ -510,7 +510,7 @@ function showView(name,tab){
   document.getElementById('view-'+name).classList.add('active');
   if(tab&&!tab.classList.contains('refresh'))tab.classList.add('active');
   if(name==='log'&&!window._ll)loadLog();
-  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}if(name!=='quicklog'){var qg=document.getElementById('ql-passcode-gate');var qc=document.getElementById('ql-content');if(qg)qg.style.display='block';if(qc)qc.style.display='none';var qi=document.getElementById('ql-passcode-input');if(qi)qi.value='';}
+  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}if(name!=='quicklog'){qlFullReset&&qlFullReset();var qg=document.getElementById('ql-passcode-gate');var qc=document.getElementById('ql-content');if(qg)qg.style.display='block';if(qc)qc.style.display='none';var qi=document.getElementById('ql-passcode-input');if(qi)qi.value='';}
 }
 function setStatus(live,txt){document.getElementById('sDot').className='status-dot'+(live?' live':'');document.getElementById('sTxt').textContent=txt;}
 function jsonp(url,cb){
@@ -1062,8 +1062,29 @@ function qlCommit(){
 }
 
 function qlDiscardConfirm(){
-  if(confirm('Discard this trip? All tracking data and GPX will be lost.'))
+  if(confirm('Discard this trip? All tracking data and GPX will be lost.')){
+    qlFullReset();
     showView('dashboard',document.querySelector('.nav-tab'));
+  }
+}
+
+function qlFullReset(){
+  // Stop any active tracking
+  if(QL.watchId){navigator.geolocation.clearWatch(QL.watchId);QL.watchId=null;}
+  clearInterval(QL.timerInterval);
+  // Reset state
+  QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
+  QL.gpxDriveUrl='';QL.gpxDownloadUrl='';
+  window._qlGpxUrl='';window._qlPrefill=null;
+  // Reset UI
+  document.getElementById('ql-summary-view').style.display='none';
+  document.getElementById('ql-tracking').style.display='none';
+  document.getElementById('ql-ready').style.display='block';
+  document.getElementById('ql-nm-display').textContent='0.00';
+  document.getElementById('ql-timer').textContent='00:00:00';
+  document.getElementById('ql-track-count').textContent='● Recording...';
+  var sb=document.getElementById('ql-saving-status');if(sb)sb.textContent='';
+  var cb=document.querySelector('.btn-fill');if(cb){cb.textContent='✓ Commit Quick Log';cb.disabled=false;}
 }
 
 function qlFillForm(){
@@ -1116,11 +1137,7 @@ function qlCancel(){
   }
 }
 function qlReset(){
-  QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
-  document.getElementById('ql-summary-view').style.display='none';
-  document.getElementById('ql-ready').style.display='block';
-  document.getElementById('ql-nm-display').textContent='0.00';
-  document.getElementById('ql-timer').textContent='00:00:00';
+  qlFullReset();
   qlInit();
 }
 
