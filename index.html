@@ -1013,6 +1013,59 @@ function qlSaveGPXtoDrive(cb){
     });
 }
 
+function qlCommit(){
+  if(!confirm('Commit this trip to your log? GPX track will be saved automatically.')) return;
+  var btn = document.querySelector('.btn-fill');
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  var status = document.getElementById('ql-saving-status');
+
+  function doFillAndSave(){
+    var p = window._qlPrefill;
+    if(!p) return;
+    // Switch to manual log entry with passcode
+    showView('entry', document.querySelector('.nav-tab[onclick*=entry]'));
+    if(document.getElementById('entry-form').style.display!=='none'){
+      qlDoFill();
+    } else {
+      window._qlPendingFill = true;
+    }
+  }
+
+  // Save GPX to Drive first if we have track data
+  if(QL.track.length > 0){
+    if(status) status.textContent = 'Saving GPX track to Google Drive...';
+    qlSaveGPXtoDrive(function(url){
+      if(status) status.textContent = url ? 'GPX saved ✓' : 'GPX saved locally only';
+      window._qlPrefill = {
+        date: QL.startTime.toISOString().slice(0,10),
+        startTime: QL.startTimeStr,
+        endTime: QL.endTimeStr,
+        miles: Math.round(QL.totalNm*10)/10,
+        dur: Math.round((new Date()-QL.startTime)/1000/60/60*100)/100,
+        from: QL.startAddress,
+        to: QL.endAddress,
+      };
+      setTimeout(doFillAndSave, 500);
+    });
+  } else {
+    window._qlPrefill = {
+      date: QL.startTime.toISOString().slice(0,10),
+      startTime: QL.startTimeStr,
+      endTime: QL.endTimeStr,
+      miles: Math.round(QL.totalNm*10)/10,
+      dur: Math.round((new Date()-QL.startTime)/1000/60/60*100)/100,
+      from: QL.startAddress,
+      to: QL.endAddress,
+    };
+    doFillAndSave();
+  }
+}
+
+function qlDiscardConfirm(){
+  if(confirm('Discard this trip? All tracking data and GPX will be lost.'))
+    showView('dashboard',document.querySelector('.nav-tab'));
+}
+
 function qlFillForm(){
   // Switch to entry view and pre-populate
   showView('entry', document.querySelector('.nav-tab[onclick*=entry]'));
