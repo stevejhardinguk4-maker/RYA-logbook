@@ -440,12 +440,10 @@ tbody tr.clickable:hover{background:#dae8f5!important}
         <div class="track-map" id="ql-map-wrap2">
           <canvas id="ql-map2"></canvas>
         </div>
-        <button class="btn-gpx" onclick="qlDownloadGPX()">&#11123; Download GPX Track File</button>
-        <button class="btn-gpx" id="ql-gpx-drive-btn" onclick="qlSaveGPXtoDrive(null)" style="border-color:var(--green);color:var(--green)">&#9729; Save GPX to Google Drive</button>
-        <button class="btn-fill" onclick="qlFillForm()">&#9654; Fill Log Entry Form</button>
+        <div id="ql-saving-status" style="text-align:center;font-size:.8rem;color:var(--muted);min-height:20px;margin-bottom:8px"></div>
+        <button class="btn-fill" onclick="qlCommit()">&#10003; Commit Quick Log</button>
         <div style="margin-top:10px">
-          <button class="btn-gpx" onclick="qlReset()" style="border-color:var(--muted);color:var(--muted)">&#8635; New Trip</button>
-        <button class="btn-gpx" onclick="showView('dashboard',document.querySelector('.nav-tab'))" style="border-color:var(--red);color:var(--red);margin-top:4px">&#10005; Discard &amp; Exit</button>
+          <button class="btn-gpx" onclick="qlDiscardConfirm()" style="border-color:var(--red);color:var(--red)">&#10005; Discard &amp; Exit</button>
         </div>
       </div>
     </div>
