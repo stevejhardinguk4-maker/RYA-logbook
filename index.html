@@ -221,8 +221,8 @@ footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Start Date</th><th>End Date</th><th>From</th><th>To</th><th>Type</th><th>Vessel</th><th>Start</th><th>End</th><th>Hrs</th><th>Cum Hrs</th><th>Miles</th><th>Cum Nm</th><th>Night</th><th>GT60</th><th>Weather</th><th>Details</th></tr></thead>
-        <tbody id="log-tbody"><tr><td colspan="16" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr></tbody>
+        <thead><tr><th>Start Date</th><th>End Date</th><th>From</th><th>To</th><th>Type</th><th>Vessel</th><th>Start</th><th>End</th><th>Hrs</th><th>Cum Hrs</th><th>Miles</th><th>Cum Nm</th><th>Night</th><th>GT60</th><th>Weather</th><th>Wind</th><th>Details</th></tr></thead>
+        <tbody id="log-tbody"><tr><td colspan="17" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -351,23 +351,23 @@ function fmtDate(dt){
 }
 function loadLog(){
   var tb=document.getElementById('log-tbody');
-  tb.innerHTML='<tr><td colspan="16" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
+  tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
   jsonp(SCRIPT_URL+'?action=log',function(err,d){
-    if(err||!d||d.error){tb.innerHTML='<tr><td colspan="16" style="text-align:center;padding:30px;color:var(--red)">Could not load</td></tr>';return;}
+    if(err||!d||d.error){tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--red)">Could not load</td></tr>';return;}
     allEntries=d.entries.slice().reverse();window._ll=true;renderLog(allEntries);
   });
 }
 function renderLog(entries){
   document.getElementById('log-count').textContent='— '+entries.length+' entries';
   var tb=document.getElementById('log-tbody');
-  if(!entries.length){tb.innerHTML='<tr><td colspan="16" style="text-align:center;padding:30px">No entries</td></tr>';return;}
+  if(!entries.length){tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px">No entries</td></tr>';return;}
   tb.innerHTML=entries.map(function(e){
     var sd=fmtDate(e.startDate);var ed=fmtDate(e.endDate);
     var isMulti=e.multiDay||(sd&&ed&&sd!==ed);
     var typeTag=isMulti?'<span class="tag tag-multi">Multi Day</span>':'<span class="tag tag-day">Day Trip</span>';
     var nightTag=e.night==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
     var gt60Tag=e.gt60==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
-    return '<tr><td><strong>'+sd+'</strong></td><td>'+ed+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+e.cumHrs+'</strong></td><td>'+e.miles+'</td><td><strong>'+e.cumMiles+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+e.details+'</td></tr>';
+    var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');return '<tr><td><strong>'+sd+'</strong></td><td>'+(sd===ed?'':ed)+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+e.cumHrs+'</strong></td><td>'+e.miles+'</td><td><strong>'+e.cumMiles+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td></tr>';
   }).join('');
 }
 function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
