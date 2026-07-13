@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.5 -->
+<!-- v1.6 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -124,6 +124,19 @@ tbody td{padding:7px 10px;border-bottom:1px solid #EEF2F6;white-space:nowrap}
 .gate p{color:var(--muted);font-size:.88rem;margin-bottom:20px}
 .gate input{font-size:1.6rem;letter-spacing:8px;text-align:center;width:110px;padding:10px;border:2px solid var(--blue);border-radius:10px;outline:none}
 footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border-top:1px solid var(--light)}
+
+/* ── App modal (replaces native confirm/alert) ── */
+.app-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:20px}
+.app-modal-overlay.active{display:flex}
+.app-modal{background:var(--white);border-radius:16px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:app-modal-in .18s ease-out}
+@keyframes app-modal-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.app-modal-head{background:linear-gradient(135deg,#0D2B4E,var(--navy));padding:16px 20px;display:flex;align-items:center;gap:10px}
+.app-modal-icon{font-size:1.3rem;flex-shrink:0}
+.app-modal-title{color:#fff;font-weight:800;font-size:.95rem}
+.app-modal-body{padding:20px;color:var(--text);font-size:.88rem;line-height:1.5}
+.app-modal-actions{display:flex;gap:10px;padding:0 20px 20px;justify-content:flex-end}
+.app-modal-actions .btn{padding:9px 20px;font-size:.83rem}
+.app-modal.danger .app-modal-head{background:linear-gradient(135deg,#7a0016,var(--red))}
 
 /* ── Quick Log ── */
 .ql-wrap{max-width:500px;margin:0 auto;padding:20px 16px 40px}
@@ -496,6 +509,17 @@ tbody tr.clickable:hover{background:#dae8f5!important}
   </div>
 </div>
 
+<div class="app-modal-overlay" id="app-modal-overlay">
+  <div class="app-modal" id="app-modal">
+    <div class="app-modal-head">
+      <span class="app-modal-icon" id="app-modal-icon">&#9888;</span>
+      <span class="app-modal-title" id="app-modal-title">Confirm</span>
+    </div>
+    <div class="app-modal-body" id="app-modal-body"></div>
+    <div class="app-modal-actions" id="app-modal-actions"></div>
+  </div>
+</div>
+
 <footer>Steve Harding &middot; RYA Skipper Log &middot; Poole Harbour &middot; stevejhardinguk4@gmail.com <span id="app-version-tag" style="opacity:.6"></span></footer>
 
 <script>
@@ -507,7 +531,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.5';
+var APP_VERSION = '1.6';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -525,6 +549,63 @@ document.getElementById('app-version-tag') && (document.getElementById('app-vers
 })();
 
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcl8UzqiDk-TSMb0s81lVQv4TaH9kBF-iPVWf68gE8beTxByMK9ZEDf-2nveCsB1T67Q/exec';
+
+/* ── Custom modal (replaces native confirm/alert) ──────────────────────────
+   appAlert(msg, opts)            -> Promise<void>, resolves on OK
+   appConfirm(msg, opts)          -> Promise<boolean>, resolves true(OK)/false(Cancel)
+   opts: {title, icon, danger, okText, cancelText} all optional */
+function _appModalShow(opts){
+  var overlay = document.getElementById('app-modal-overlay');
+  var modal   = document.getElementById('app-modal');
+  document.getElementById('app-modal-icon').innerHTML  = opts.icon  || '&#9888;';
+  document.getElementById('app-modal-title').textContent = opts.title || 'Confirm';
+  document.getElementById('app-modal-body').textContent  = opts.message || '';
+  modal.classList.toggle('danger', !!opts.danger);
+  var actions = document.getElementById('app-modal-actions');
+  actions.innerHTML = '';
+  return new Promise(function(resolve){
+    function close(result){
+      overlay.classList.remove('active');
+      document.body.style.overflow='';
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onKey(e){
+      if(e.key==='Escape') close(opts.isAlert ? undefined : false);
+      if(e.key==='Enter')  close(opts.isAlert ? undefined : true);
+    }
+    if(!opts.isAlert){
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn bs';
+      cancelBtn.textContent = opts.cancelText || 'Cancel';
+      cancelBtn.onclick = function(){ close(false); };
+      actions.appendChild(cancelBtn);
+    }
+    var okBtn = document.createElement('button');
+    okBtn.className = 'btn bp';
+    okBtn.textContent = opts.okText || 'OK';
+    okBtn.onclick = function(){ close(opts.isAlert ? undefined : true); };
+    actions.appendChild(okBtn);
+    document.addEventListener('keydown', onKey);
+    overlay.classList.add('active');
+    document.body.style.overflow='hidden';
+    setTimeout(function(){ okBtn.focus(); }, 50);
+  });
+}
+function appAlert(message, opts){
+  opts = opts || {};
+  opts.message = message; opts.isAlert = true;
+  opts.icon  = opts.icon  || '&#9432;';
+  opts.title = opts.title || 'Notice';
+  return _appModalShow(opts);
+}
+function appConfirm(message, opts){
+  opts = opts || {};
+  opts.message = message; opts.isAlert = false;
+  opts.icon  = opts.icon  || (opts.danger ? '&#9888;' : '&#10067;');
+  opts.title = opts.title || (opts.danger ? 'Are you sure?' : 'Confirm');
+  return _appModalShow(opts);
+}
 var HM = {"2023-08-12": 2, "2025-07-11": 2, "2020-07-23": 1, "2020-07-24": 1, "2020-07-26": 1, "2020-07-29": 1, "2020-07-30": 1, "2020-08-01": 1, "2020-08-03": 1, "2020-08-06": 1, "2020-08-08": 1, "2020-08-09": 1, "2020-08-11": 1, "2020-08-12": 2, "2020-08-13": 1, "2020-08-17": 1, "2020-08-20": 1, "2020-08-29": 1, "2020-09-04": 1, "2020-09-05": 1, "2020-09-06": 1, "2020-09-11": 1, "2020-09-12": 1, "2020-09-13": 1, "2020-09-18": 1, "2020-09-19": 1, "2020-09-20": 1, "2020-09-21": 1, "2020-09-24": 1, "2020-09-25": 1, "2020-09-26": 1, "2020-09-27": 1, "2020-10-03": 1, "2020-10-10": 1, "2020-10-11": 1, "2020-10-17": 1, "2020-10-18": 1, "2020-10-19": 1, "2020-10-23": 1, "2020-10-24": 1, "2020-10-25": 1, "2020-10-30": 1, "2020-11-01": 1, "2020-11-06": 1, "2020-11-07": 1, "2020-11-20": 1, "2020-11-27": 1, "2020-12-20": 1, "2020-12-25": 1, "2021-01-01": 1, "2021-01-09": 1, "2021-01-30": 1, "2021-04-02": 1, "2021-04-03": 1, "2021-04-05": 1, "2021-04-09": 1, "2021-04-11": 1, "2021-05-02": 1, "2021-05-08": 1, "2021-05-19": 1, "2021-05-22": 1, "2021-05-28": 1, "2021-06-04": 1, "2021-06-08": 1, "2021-06-12": 1, "2021-06-14": 1, "2021-06-19": 1, "2021-06-20": 1, "2021-06-26": 1, "2021-07-02": 1, "2021-07-03": 1, "2021-07-04": 1, "2021-07-10": 1, "2021-07-11": 1, "2021-07-14": 1, "2021-07-17": 1, "2021-07-18": 1, "2021-07-19": 1, "2021-07-23": 1, "2021-07-24": 1, "2021-07-25": 1, "2021-07-31": 1, "2021-08-01": 1, "2021-08-02": 1, "2021-08-06": 1, "2021-08-07": 1, "2021-08-08": 1, "2021-08-09": 1, "2021-08-10": 1, "2021-08-13": 1, "2021-08-14": 1, "2021-08-15": 1, "2021-08-21": 1, "2021-08-22": 1, "2021-08-27": 1, "2021-08-28": 1, "2021-08-29": 1, "2021-09-03": 1, "2021-09-04": 1, "2021-09-05": 1, "2021-09-06": 1, "2021-09-10": 1, "2021-09-11": 1, "2021-09-12": 1, "2021-09-16": 1, "2021-09-17": 1, "2021-09-18": 1, "2021-09-19": 1, "2021-09-24": 1, "2021-09-25": 1, "2021-09-26": 1, "2021-10-01": 1, "2021-10-03": 1, "2021-10-08": 1, "2021-10-09": 1, "2021-10-11": 1, "2021-10-17": 1, "2021-10-23": 1, "2021-10-24": 1, "2021-10-29": 1, "2021-10-30": 1, "2021-10-31": 1, "2021-11-05": 1, "2021-11-12": 1, "2021-11-14": 1, "2021-11-26": 1, "2021-12-03": 1, "2021-12-19": 1, "2021-12-25": 1, "2021-12-26": 1, "2022-01-21": 1, "2022-01-23": 1, "2022-04-10": 1, "2022-04-16": 1, "2022-04-17": 1, "2022-04-18": 1, "2022-04-24": 1, "2022-05-01": 1, "2022-05-11": 1, "2022-05-13": 1, "2022-05-20": 1, "2022-05-27": 1, "2022-06-02": 1, "2022-06-03": 1, "2022-06-12": 1, "2022-06-17": 1, "2022-06-18": 1, "2022-06-21": 1, "2022-06-25": 1, "2022-07-02": 1, "2022-07-08": 1, "2022-07-09": 1, "2022-07-10": 1, "2022-07-16": 1, "2022-07-17": 1, "2022-07-18": 1, "2022-07-22": 1, "2022-07-23": 1, "2022-07-24": 1, "2022-07-25": 1, "2022-07-29": 1, "2022-07-30": 1, "2022-07-31": 1, "2022-08-03": 1, "2022-08-05": 1, "2022-08-06": 1, "2022-08-07": 1, "2022-08-12": 1, "2022-08-13": 1, "2022-08-14": 1, "2022-08-18": 1, "2022-08-19": 1, "2022-08-20": 1, "2022-08-21": 1, "2022-08-26": 1, "2022-08-27": 1, "2022-08-28": 1, "2022-09-03": 1, "2022-09-04": 1, "2022-09-09": 1, "2022-09-10": 1, "2022-09-11": 1, "2022-09-16": 1, "2022-09-17": 1, "2022-09-18": 1, "2022-09-19": 1, "2022-09-21": 1, "2022-09-23": 1, "2022-09-24": 1, "2022-09-25": 1, "2022-09-30": 1, "2022-10-01": 1, "2022-10-02": 1, "2022-10-07": 1, "2022-10-08": 1, "2022-10-09": 1, "2022-10-14": 1, "2022-10-15": 1, "2022-10-21": 1, "2022-10-22": 1, "2022-10-25": 1, "2022-10-28": 1, "2022-11-12": 1, "2022-11-13": 1, "2022-11-20": 1, "2022-11-25": 1, "2022-12-11": 1, "2022-12-30": 1, "2023-01-15": 1, "2023-01-29": 1, "2023-04-08": 1, "2023-04-21": 1, "2023-04-23": 1, "2023-04-24": 1, "2023-04-28": 1, "2023-05-12": 1, "2023-05-13": 1, "2023-05-20": 1, "2023-05-27": 1, "2023-05-30": 1, "2023-06-02": 1, "2023-06-04": 1, "2023-06-10": 1, "2023-06-11": 1, "2023-06-12": 1, "2023-06-17": 1, "2023-06-22": 1, "2023-07-01": 1, "2023-07-02": 1, "2023-07-07": 1, "2023-07-08": 1, "2023-07-09": 1, "2023-07-16": 1, "2023-07-17": 1, "2023-07-18": 1, "2023-07-21": 1, "2023-07-22": 1, "2023-07-23": 1, "2023-07-28": 1, "2023-07-29": 1, "2023-07-30": 1, "2023-08-04": 1, "2023-08-05": 1, "2023-08-06": 1, "2023-08-08": 1, "2023-08-11": 1, "2023-08-13": 1, "2023-08-18": 1, "2023-08-19": 1, "2023-08-20": 1, "2023-08-22": 1, "2023-08-25": 1, "2023-08-26": 1, "2023-08-27": 1, "2023-09-01": 1, "2023-09-08": 1, "2023-09-09": 1, "2023-09-10": 1, "2023-09-15": 1, "2023-09-16": 1, "2023-09-17": 1, "2023-09-21": 1, "2023-09-22": 1, "2023-09-23": 1, "2023-09-24": 1, "2023-09-26": 1, "2023-09-29": 1, "2023-09-30": 1, "2023-10-01": 1, "2023-10-06": 1, "2023-10-07": 1, "2023-10-08": 1, "2023-10-14": 1, "2023-10-15": 1, "2023-10-20": 1, "2023-10-22": 1, "2023-10-24": 1, "2023-10-27": 1, "2023-10-28": 1, "2023-11-03": 1, "2023-11-10": 1, "2023-11-12": 1, "2023-11-26": 1, "2023-12-01": 1, "2023-12-23": 1, "2023-12-26": 1, "2024-01-20": 1, "2024-01-26": 1, "2024-04-10": 1, "2024-04-14": 1, "2024-04-19": 1, "2024-04-20": 1, "2024-04-26": 1, "2024-05-01": 1, "2024-05-03": 1, "2024-05-25": 1, "2024-05-26": 1, "2024-05-31": 1, "2024-06-03": 1, "2024-06-06": 1, "2024-06-07": 1, "2024-06-08": 1, "2024-06-16": 1, "2024-06-21": 1, "2024-06-30": 1, "2024-07-05": 1, "2024-07-06": 1, "2024-07-07": 1, "2024-07-12": 1, "2024-07-13": 1, "2024-07-14": 1, "2024-07-18": 1, "2024-07-19": 1, "2024-07-20": 1, "2024-07-21": 1, "2024-07-26": 1, "2024-07-27": 1, "2024-07-28": 1, "2024-07-29": 1, "2024-08-02": 1, "2024-08-03": 1, "2024-08-04": 1, "2024-08-09": 1, "2024-08-11": 1, "2024-08-15": 1, "2024-08-16": 1, "2024-08-18": 1, "2024-08-23": 1, "2024-08-24": 1, "2024-08-25": 1, "2024-08-26": 1, "2024-08-30": 1, "2024-08-31": 1, "2024-09-01": 1, "2024-09-06": 1, "2024-09-07": 1, "2024-09-08": 1, "2024-09-13": 1, "2024-09-15": 1, "2024-09-20": 1, "2024-09-21": 1, "2024-09-22": 1, "2024-09-23": 1, "2024-09-24": 1, "2024-09-27": 1, "2024-09-28": 1, "2024-09-29": 1, "2024-10-04": 1, "2024-10-05": 1, "2024-10-06": 1, "2024-10-11": 1, "2024-10-12": 1, "2024-10-13": 1, "2024-10-20": 1, "2024-10-25": 1, "2024-10-26": 1, "2024-10-27": 1, "2024-10-31": 1, "2024-11-02": 1, "2024-11-15": 1, "2024-11-25": 1, "2024-11-30": 1, "2024-12-13": 1, "2024-12-14": 1, "2024-12-25": 1, "2024-12-26": 1, "2025-01-11": 1, "2025-01-25": 1, "2025-04-04": 1, "2025-04-06": 1, "2025-04-19": 1, "2025-04-26": 1, "2025-04-29": 1, "2025-05-02": 1, "2025-05-05": 1, "2025-05-09": 1, "2025-05-10": 1, "2025-05-11": 1, "2025-05-16": 1, "2025-05-17": 1, "2025-05-18": 1, "2025-05-22": 1, "2025-05-23": 1, "2025-05-24": 1, "2025-05-27": 1, "2025-05-30": 1, "2025-06-01": 1, "2025-06-06": 1, "2025-06-07": 1, "2025-06-08": 1, "2025-06-10": 1, "2025-06-11": 1, "2025-06-13": 1, "2025-06-14": 1, "2025-06-15": 1, "2025-06-16": 1, "2025-06-20": 1, "2025-06-21": 1, "2025-06-27": 1, "2025-06-28": 1, "2025-06-29": 1, "2025-06-30": 1, "2025-07-01": 1, "2025-07-04": 1, "2025-07-05": 1, "2025-07-06": 1, "2025-07-12": 1, "2025-07-13": 1, "2025-07-18": 1, "2025-07-19": 1, "2025-07-20": 1, "2025-07-21": 1, "2025-07-23": 1, "2025-07-25": 1, "2025-07-26": 1, "2025-07-27": 1, "2025-07-31": 1, "2025-08-02": 1, "2025-08-03": 1, "2025-08-08": 1, "2025-08-09": 1, "2025-08-10": 1, "2025-08-14": 1, "2025-08-15": 1, "2025-08-16": 1, "2025-08-17": 1, "2025-08-22": 1, "2025-08-24": 1, "2025-08-26": 1, "2025-08-28": 1, "2025-08-29": 1, "2025-08-30": 1, "2025-08-31": 1, "2025-09-04": 1, "2025-09-05": 1, "2025-09-06": 1, "2025-09-07": 1, "2025-09-09": 1, "2025-09-12": 1, "2025-09-13": 1, "2025-09-14": 1, "2025-09-19": 1, "2025-09-21": 1, "2025-09-24": 1, "2025-09-26": 1, "2025-09-27": 1, "2025-09-28": 1, "2025-10-04": 1, "2025-10-05": 1, "2025-10-10": 1, "2025-10-11": 1, "2025-10-17": 1, "2025-10-18": 1, "2025-10-19": 1, "2025-10-23": 1, "2025-10-24": 1, "2025-10-25": 1, "2025-10-26": 1, "2025-11-07": 1, "2025-11-16": 1, "2025-11-21": 1, "2025-11-29": 1, "2025-12-19": 1, "2025-12-21": 1, "2025-12-26": 1, "2026-01-01": 1, "2026-01-10": 1, "2026-01-18": 1, "2026-04-10": 1, "2026-04-11": 1, "2026-04-19": 1, "2026-04-23": 1, "2026-04-26": 1, "2026-05-09": 1, "2026-05-11": 1, "2026-05-15": 1, "2026-05-17": 1, "2026-05-23": 1, "2026-05-30": 1, "2026-06-05": 1, "2026-06-07": 1, "2026-06-08": 1, "2026-06-21": 1, "2026-06-24": 1, "2026-06-26": 1, "2026-06-28": 1, "2026-07-03": 1, "2026-07-04": 1, "2026-07-06": 1, "2026-07-07": 1, "2026-07-10": 1, "2026-07-11": 1};
 
 function showView(name,tab){
@@ -682,7 +763,7 @@ function refreshCharts(btn){
   btn.textContent='Refreshing...';btn.disabled=true;
   jsonp(SCRIPT_URL+'?action=log',function(err,d){
     btn.innerHTML='&#8635; Update';btn.disabled=false;
-    if(err||!d||d.error){alert('Could not load live data');return;}
+    if(err||!d||d.error){appAlert('Could not load live data from the log book.',{title:'Connection Issue',icon:'&#128225;'});return;}
     var entries=d.entries;
     var months=["2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07"];
     var mc={};months.forEach(function(m){mc[m]=0;});
@@ -1005,7 +1086,7 @@ function qlBuildGPX(){
 }
 
 function qlDownloadGPX(){
-  if(!QL.track.length){alert('No track data');return;}
+  if(!QL.track.length){appAlert('No track data to download yet.',{title:'Nothing to Export',icon:'&#128506;'});return;}
   var gpx=qlBuildGPX();
   var blob=new Blob([gpx],{type:'application/gpx+xml'});
   var a=document.createElement('a');
@@ -1037,7 +1118,8 @@ function qlSaveGPXtoDrive(cb){
 }
 
 function qlCommit(){
-  if(!confirm('Commit this trip to your log? GPX track will be saved automatically.')) return;
+  appConfirm('Commit this trip to your log? GPX track will be saved automatically.',{title:'Commit Trip',icon:'&#9989;'}).then(function(ok){
+  if(!ok) return;
   var btn = document.querySelector('.btn-fill');
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
   var status = document.getElementById('ql-saving-status');
@@ -1082,13 +1164,16 @@ function qlCommit(){
     };
     doFillAndSave();
   }
+  });
 }
 
 function qlDiscardConfirm(){
-  if(confirm('Discard this trip? All tracking data and GPX will be lost.')){
-    qlFullReset();
-    showView('dashboard',document.querySelector('.nav-tab'));
-  }
+  appConfirm('Discard this trip? All tracking data and GPX will be lost.',{title:'Discard Trip?',danger:true,okText:'Discard'}).then(function(ok){
+    if(ok){
+      qlFullReset();
+      showView('dashboard',document.querySelector('.nav-tab'));
+    }
+  });
 }
 
 function qlFullReset(){
@@ -1148,16 +1233,18 @@ function qlDoFill(){
 }
 
 function qlCancel(){
-  if(confirm('Are you sure you want to cancel this trip? All tracking data will be lost.')){
-    if(QL.watchId) navigator.geolocation.clearWatch(QL.watchId);
-    clearInterval(QL.timerInterval);
-    QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
-    document.getElementById('ql-tracking').style.display='none';
-    document.getElementById('ql-ready').style.display='block';
-    document.getElementById('ql-nm-display').textContent='0.00';
-    document.getElementById('ql-timer').textContent='00:00:00';
-    qlSetGPS('ok','GPS ready');
-  }
+  appConfirm('Are you sure you want to cancel this trip? All tracking data will be lost.',{title:'Cancel Trip?',danger:true,okText:'Cancel Trip',cancelText:'Keep Tracking'}).then(function(ok){
+    if(ok){
+      if(QL.watchId) navigator.geolocation.clearWatch(QL.watchId);
+      clearInterval(QL.timerInterval);
+      QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
+      document.getElementById('ql-tracking').style.display='none';
+      document.getElementById('ql-ready').style.display='block';
+      document.getElementById('ql-nm-display').textContent='0.00';
+      document.getElementById('ql-timer').textContent='00:00:00';
+      qlSetGPS('ok','GPS ready');
+    }
+  });
 }
 function qlReset(){
   qlFullReset();
