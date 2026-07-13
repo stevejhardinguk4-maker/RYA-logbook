@@ -367,7 +367,7 @@ function renderLog(entries){
     var typeTag=isMulti?'<span class="tag tag-multi">Multi Day</span>':'<span class="tag tag-day">Day Trip</span>';
     var nightTag=e.night==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
     var gt60Tag=e.gt60==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
-    var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');return '<tr><td><strong>'+sd+'</strong></td><td>'+(sd===ed?'':ed)+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+e.cumHrs+'</strong></td><td>'+e.miles+'</td><td><strong>'+e.cumMiles+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td></tr>';
+    var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');var cumH=Math.round(Number(e.cumHrs)*10)/10;var cumM=Math.round(Number(e.cumMiles)*10)/10;return '<tr><td><strong>'+sd+'</strong></td><td>'+(sd&&ed&&sd!==ed?ed:'')+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+cumH+'</strong></td><td>'+e.miles+'</td><td><strong>'+cumM+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td></tr>';
   }).join('');
 }
 function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
