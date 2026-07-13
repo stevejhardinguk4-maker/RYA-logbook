@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>RYA Skipper Log — Steve Harding</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#1F4E79;--blue:#2E75B6;--sky:#5BA3D9;--green:#70AD47;--amber:#FFC000;--coral:#ED7D31;--teal:#00B050;--light:#EBF3FB;--bg:#F0F4F8;--text:#1a2a3a;--muted:#6b7c8e;--white:#fff;--red:#C00020;--success:#00875A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
+nav{background:var(--navy);position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;gap:8px;flex-wrap:wrap}
+.nav-brand{color:#fff;font-weight:800;font-size:.95rem;white-space:nowrap}
+.nav-brand span{opacity:.65;font-weight:400;font-size:.78rem;margin-left:5px}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{background:none;border:none;color:rgba(255,255,255,.65);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;white-space:nowrap}
+.nav-tab:hover,.nav-tab.active{color:#fff;background:rgba(255,255,255,.18)}
+.nav-tab.refresh{color:var(--amber);border:1px solid rgba(255,193,0,.3)}
+.nav-status{font-size:.7rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0}
+.status-dot.live{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(max-width:600px){.nav-brand span{display:none}.nav-tab{padding:5px 6px;font-size:.7rem}.nav-inner{height:auto;padding:6px 8px}}
+.view{display:none}.view.active{display:block}
+.dash-header{background:linear-gradient(135deg,#0D2B4E,var(--navy) 60%,var(--blue));color:#fff;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.dash-header h1{font-size:1.3rem;font-weight:800}
+.dash-header p{font-size:.78rem;opacity:.7;margin-top:3px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;text-align:center;min-width:85px}
+.badge strong{display:block;font-size:1.2rem;font-weight:800}
+.badge span{font-size:.63rem;opacity:.75;text-transform:uppercase}
+.kpi-bar{display:grid;grid-template-columns:repeat(6,1fr);background:var(--white);border-bottom:2px solid var(--light)}
+.kpi{padding:12px 8px;text-align:center;border-right:1px solid var(--light)}
+.kpi:last-child{border-right:none}
+.kpi .val{font-size:1.3rem;font-weight:800;color:var(--navy)}
+.kpi .lbl{font-size:.6rem;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.kpi .sub{font-size:.58rem;color:var(--blue);margin-top:1px}
+@media(max-width:600px){.kpi-bar{grid-template-columns:repeat(3,1fr)}}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;padding:16px 20px 32px;max-width:1700px;margin:0 auto}
+.card{background:var(--white);border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.ct{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
+.cs{font-size:.63rem;color:var(--sky);margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid var(--light)}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s5{grid-column:span 5}.s4{grid-column:span 4}.s3{grid-column:span 3}
+@media(max-width:900px){.s8,.s6,.s5,.s4,.s3{grid-column:span 12}.grid{padding:10px}}
+#heatmap-container{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#heatmap{display:flex;gap:2px;min-width:max-content}
+.hm-month{display:flex;flex-direction:column;gap:2px;align-items:center}
+.hm-label{font-size:8px;color:var(--muted);margin-bottom:2px;white-space:nowrap}
+.hm-weeks{display:flex;gap:2px}
+.hm-col{display:flex;flex-direction:column;gap:2px}
+.hm-cell{width:10px;height:10px;border-radius:2px}
+.insights{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pill{background:var(--light);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:4px 10px;font-size:.7rem}
+.pill strong{color:var(--navy)}
+.v-matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.v-card{border-radius:10px;padding:12px;text-align:center;border-top:4px solid var(--blue)}
+.v-name{font-weight:700;font-size:.78rem;color:var(--navy);margin-bottom:8px}
+.v-stat .num{font-size:1.1rem;font-weight:800;color:var(--navy)}
+.v-stat .lab{font-size:.6rem;color:var(--muted);text-transform:uppercase}
+@media(max-width:600px){.v-matrix{grid-template-columns:1fr}}
+.log-wrap{max-width:1400px;margin:0 auto;padding:20px 16px}
+.log-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.log-hdr h2{font-size:1.2rem;font-weight:800;color:var(--navy)}
+.log-search{padding:8px 12px;border:1.5px solid #D0DCE8;border-radius:7px;font-size:.85rem;width:280px}
+.tbl-wrap{overflow-x:auto;background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+table{width:100%;border-collapse:collapse;font-size:.75rem}
+thead th{background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:.65rem;text-transform:uppercase;white-space:nowrap}
+tbody tr:nth-child(even){background:#F8FAFC}
+tbody tr:hover{background:var(--light)}
+tbody td{padding:7px 10px;border-bottom:1px solid #EEF2F6;white-space:nowrap}
+.tag{padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
+.tag-bb{background:#EBF3FB;color:var(--navy)}.tag-rib{background:#E3F9E5;color:#005A30}
+.fw{max-width:760px;margin:24px auto;padding:0 16px 40px}
+.fh h2{font-size:1.3rem;font-weight:800;color:var(--navy)}
+.fh p{color:var(--muted);font-size:.83rem;margin-top:4px;margin-bottom:20px}
+.fc{background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:14px}
+.fc h3{font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:7px;border-bottom:2px solid var(--light)}
+.fg{display:grid;gap:12px}
+.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:1fr 1fr 1fr}.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:600px){.c2,.c3,.c4{grid-template-columns:1fr}}
+.fi{display:flex;flex-direction:column;gap:4px}
+.fi label{font-size:.73rem;font-weight:600}
+.fi input,.fi select,.fi textarea{border:1.5px solid #D0DCE8;border-radius:7px;padding:9px 11px;font-size:.87rem;font-family:inherit;width:100%}
+.fi input:focus,.fi select:focus,.fi textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,117,182,.12)}
+.fi textarea{resize:vertical;min-height:60px}
+.ws{background:var(--light);border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:600px){.ws{grid-template-columns:1fr}}
+.fa{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.btn{padding:10px 22px;border-radius:8px;border:none;font-size:.88rem;font-weight:700;cursor:pointer}
+.bp{background:var(--navy);color:#fff}.bp:disabled{background:#999}
+.bs{background:var(--light);color:var(--navy)}
+.toast{display:none;padding:11px 16px;border-radius:8px;font-size:.83rem;font-weight:600;margin-bottom:14px}
+.toast.success{background:#E3F9E5;color:var(--success);border-left:4px solid var(--success);display:flex}
+.toast.error{background:#FFE8EC;color:var(--red);border-left:4px solid var(--red);display:flex}
+.gate{text-align:center;padding:50px 20px}
+.gate h2{color:var(--navy);font-size:1.3rem;font-weight:800;margin-bottom:8px}
+.gate p{color:var(--muted);font-size:.88rem;margin-bottom:20px}
+.gate input{font-size:1.6rem;letter-spacing:8px;text-align:center;width:110px;padding:10px;border:2px solid var(--blue);border-radius:10px;outline:none}
+footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border-top:1px solid var(--light)}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">&#9875; Steve Harding <span>RYA Skipper</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
+      <button class="nav-tab" onclick="showView('log',this)">Log Book</button>
+      <button class="nav-tab" onclick="showView('entry',this)">+ New Entry</button>
+      <button class="nav-tab refresh" onclick="refreshCharts(this)">&#8635; Update</button>
+    </div>
+    <div class="nav-status"><div class="status-dot" id="sDot"></div><span id="sTxt">...</span></div>
+  </div>
+</nav>
+
+<div id="view-dashboard" class="view active">
+  <div class="dash-header">
+    <div>
+      <h1>&#9875; Steve Harding &mdash; RYA Skipper Experience</h1>
+      <p>Commercial Skipper Qualification Log &middot; Poole Harbour &amp; Dorset Coast &middot; <span id="date-range">July 2020 &ndash; July 2026</span></p>
+    </div>
+    <div class="badges">
+      <div class="badge"><strong id="h-trips">493</strong><span>Trips</span></div>
+      <div class="badge"><strong id="h-hrs">1,628</strong><span>Log Hrs</span></div>
+      <div class="badge"><strong id="h-com">2,235</strong><span>Comb Hrs</span></div>
+      <div class="badge"><strong id="h-miles">4,162</strong><span>Nm</span></div>
+    </div>
+  </div>
+  <div class="kpi-bar">
+    <div class="kpi"><div class="val" id="k-trips">493</div><div class="lbl">Total Trips</div><div class="sub">Log Book</div></div>
+    <div class="kpi"><div class="val" id="k-lbhrs">1628.5</div><div class="lbl">Log Book Hrs</div><div class="sub">Underway</div></div>
+    <div class="kpi"><div class="val" id="k-miles">4,162</div><div class="lbl">Nm</div><div class="sub">GPS Tracked</div></div>
+    <div class="kpi"><div class="val" id="k-mdhrs">606.5</div><div class="lbl">Multi-Day Hrs</div><div class="sub">Passages</div></div>
+    <div class="kpi"><div class="val" id="k-comhrs">2,235</div><div class="lbl">Combined Hrs</div><div class="sub">All Experience</div></div>
+    <div class="kpi"><div class="val">3</div><div class="lbl">Vessels</div><div class="sub">Twin+Single</div></div>
+  </div>
+  <div class="grid">
+    <div class="card s12">
+      <div class="ct">Six Years of Seamanship &mdash; Trip Activity Calendar</div>
+      <div class="cs">Every trip day 2020&ndash;2026 &middot; seasonal rhythm and consistent commitment</div>
+      <div id="heatmap-container"><div id="heatmap"></div></div>
+      <div class="insights"><div class="pill"><strong>492</strong> unique trip days across 6 years</div><div class="pill">Peak month: <strong>2025-06</strong> &mdash; 16 trips</div><div class="pill"><strong>3.3 hrs</strong> avg per trip day</div><div class="pill">Dawn departures (before 07:00): <strong>113</strong></div></div>
+    </div>
+    <div class="card s8"><div class="ct">Monthly Trip Frequency</div><div class="cs">Bar = trips &middot; line = 3-month rolling average</div><div style="height:220px"><canvas id="ch-monthly"></canvas></div></div>
+    <div class="card s4"><div class="ct">Departure Time Distribution</div><div class="cs">Variations in time of day and traffic awareness</div><div style="height:220px"><canvas id="ch-tod"></canvas></div></div>
+    <div class="card s5"><div class="ct">Weather Window Decision Making</div><div class="cs">ERA5-verified &middot; demonstrates seamanship judgement</div><div style="height:200px"><canvas id="ch-wind-dec"></canvas></div></div>
+    <div class="card s4"><div class="ct">Wind Direction Profile</div><div class="cs">SW dominant across all seasons</div><div style="height:260px"><canvas id="ch-wind-dir"></canvas></div></div>
+    <div class="card s3"><div class="ct">Local Waters Familiarity</div><div class="cs">Poole Harbour, Studland &amp; Dorset coast</div><div style="height:200px"><canvas id="ch-dest"></canvas></div></div>
+    <div class="card s6"><div class="ct">Annual Hours &amp; Miles</div><div class="cs">Consistent 265&ndash;285 hrs/year &middot; sustained commitment</div><div style="height:220px"><canvas id="ch-annual"></canvas></div></div>
+    <div class="card s6"><div class="ct">Multi-Vessel Experience</div><div class="cs">Twin-engine inboard and single-engine outboard</div><div class="v-matrix"><div class="v-card " style="background:#1F4E7911;border-top-color:#1F4E79"><div class="v-name">Baby Blush (Volvo AD41A)</div><div class="v-stat"><div class="num">391</div><div class="lab">Trips</div></div><div class="v-stat"><div class="num">1335</div><div class="lab">Hours</div></div><div class="v-stat"><div class="num">3,359</div><div class="lab">Miles</div></div></div><div class="v-card merc" style="background:#FFC00011;border-top-color:#FFC000"><div class="v-name">Baby Blush (Mercruiser 6.2L)</div><div class="v-stat"><div class="num">58</div><div class="lab">Trips</div></div><div class="v-stat"><div class="num">168</div><div class="lab">Hours</div></div><div class="v-stat"><div class="num">441</div><div class="lab">Miles</div></div></div><div class="v-card rib" style="background:#00B05011;border-top-color:#00B050"><div class="v-name">Highfield RIB</div><div class="v-stat"><div class="num">44</div><div class="lab">Trips</div></div><div class="v-stat"><div class="num">124</div><div class="lab">Hours</div></div><div class="v-stat"><div class="num">362</div><div class="lab">Miles</div></div></div></div></div>
+  </div>
+</div>
+
+<div id="view-log" class="view">
+  <div class="log-wrap">
+    <div class="log-hdr"><h2>Log Book <span id="log-count" style="font-size:.85rem;color:var(--muted);font-weight:400"></span></h2><input class="log-search" type="text" placeholder="Search..." oninput="filterLog(this.value)"></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>From</th><th>To</th><th>Vessel</th><th>Start</th><th>End</th><th>Hrs</th><th>Cum Hrs</th><th>Miles</th><th>Cum Mi</th><th>Weather</th><th>Wind</th><th>Details</th></tr></thead><tbody id="log-tbody"><tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<div id="view-entry" class="view">
+  <div class="fw">
+    <div id="passcode-gate" class="gate">
+      <div style="font-size:2rem;margin-bottom:12px">&#128274;</div>
+      <h2>Skipper Access</h2>
+      <p>Enter passcode to add a log entry</p>
+      <input type="password" id="passcode-input" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" oninput="checkPasscode(this.value)" inputmode="numeric">
+      <div id="passcode-err" style="color:var(--red);font-size:.8rem;margin-top:10px;display:none">Incorrect passcode</div>
+    </div>
+    <div id="entry-form" style="display:none">
+      <div class="fh"><h2>New Log Entry</h2><p>Saves directly to Google Sheets</p></div>
+      <div id="toast" class="toast"></div>
+      <div class="fc"><h3>Trip Details</h3>
+        <div class="fg c2">
+          <div class="fi"><label>Date *</label><input type="date" id="f-date"></div>
+          <div class="fi"><label>Trip Type</label><select id="f-triptype"><option>Day Trip</option><option>One Way</option><option>Return</option></select></div>
+        </div>
+        <div class="fg c2" style="margin-top:12px">
+          <div class="fi"><label>From *</label><input type="text" id="f-from" placeholder="e.g. Salterns Marina" list="marina-list"></div>
+          <div class="fi"><label>To *</label><input type="text" id="f-to" placeholder="e.g. Salterns Marina" list="marina-list"></div>
+        </div>
+        <datalist id="marina-list"><option>Salterns Marina</option><option>Davis Boat Yard</option><option>Yarmouth IOW</option><option>Bridport</option><option>Weymouth</option></datalist>
+        <div class="fg c4" style="margin-top:12px">
+          <div class="fi"><label>Start *</label><input type="time" id="f-start"></div>
+          <div class="fi"><label>End *</label><input type="time" id="f-end"></div>
+          <div class="fi"><label>Hrs</label><input type="number" id="f-dur" step="0.01" placeholder="Auto"></div>
+          <div class="fi"><label>Miles (nm) *</label><input type="number" id="f-miles" step="1" min="0"></div>
+        </div>
+        <div class="fg" style="margin-top:12px"><div class="fi"><label>Details *</label><textarea id="f-details" placeholder="e.g. Studland Bay anchorage - lunch stop"></textarea></div></div>
+      </div>
+      <div class="fc"><h3>Vessel</h3>
+        <div class="fg c3">
+          <div class="fi"><label>Vessel</label><select id="f-vessel" onchange="updateVessel()"><option value="29' Sunseeker">29' Sunseeker</option><option value="22' Highfield">22' Highfield</option></select></div>
+          <div class="fi"><label>Boat Name</label><input type="text" id="f-boatname" value="Baby Blush"></div>
+          <div class="fi"><label>Engines</label><input type="text" id="f-engines" value="Twin Engine"></div>
+        </div>
+      </div>
+      <div class="fc"><h3>Weather <span style="font-weight:400;font-size:.7rem;color:var(--muted)">(optional)</span></h3>
+        <div class="ws">
+          <div class="fi"><label>Conditions</label><select id="f-weather"><option value="">- select -</option><option>Clear</option><option>Mainly Clear</option><option>Partly Cloudy</option><option>Overcast</option><option>Changeable</option><option>Overcast &amp; Wet</option><option>Heavy Rain</option><option>Fog</option></select></div>
+          <div class="fi"><label>Wind (knots)</label><input type="number" id="f-windkn" min="0" max="40"></div>
+          <div class="fi"><label>Wind Direction</label><select id="f-winddir"><option value="">-</option><option>N</option><option>NNE</option><option>NE</option><option>ENE</option><option>E</option><option>ESE</option><option>SE</option><option>SSE</option><option>S</option><option>SSW</option><option>SW</option><option>WSW</option><option>W</option><option>WNW</option><option>NW</option><option>NNW</option></select></div>
+        </div>
+      </div>
+      <div class="fa">
+        <button class="btn bp" id="submit-btn" onclick="submitEntry()">Save to Log Book</button>
+        <button class="btn bs" onclick="resetForm()">Clear</button>
+        <button class="btn bs" onclick="showView('dashboard',document.querySelector('.nav-tab'))">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Steve Harding &middot; RYA Skipper Log &middot; Poole Harbour &middot; stevejhardinguk4@gmail.com</footer>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwghqag1apddQ3Vtd8rv8F8KMelWzV8SNMCoh3cB4qzQTfXfEOK7F9-9FSD_olmvSKJ-w/exec';
+var HM = {"2020-07-23": 1, "2020-07-24": 1, "2020-07-26": 1, "2020-07-29": 1, "2020-07-30": 1, "2020-08-01": 1, "2020-08-03": 1, "2020-08-06": 1, "2020-08-08": 1, "2020-08-09": 1, "2020-08-11": 1, "2020-08-12": 2, "2020-08-13": 1, "2020-08-17": 1, "2020-08-20": 1, "2020-08-29": 1, "2020-09-04": 1, "2020-09-05": 1, "2020-09-06": 1, "2020-09-11": 1, "2020-09-12": 1, "2020-09-13": 1, "2020-09-18": 1, "2020-09-19": 1, "2020-09-20": 1, "2020-09-21": 1, "2020-09-24": 1, "2020-09-25": 1, "2020-09-26": 1, "2020-09-27": 1, "2020-10-03": 1, "2020-10-10": 1, "2020-10-11": 1, "2020-10-17": 1, "2020-10-18": 1, "2020-10-19": 1, "2020-10-23": 1, "2020-10-24": 1, "2020-10-25": 1, "2020-10-30": 1, "2020-11-01": 1, "2020-11-06": 1, "2020-11-07": 1, "2020-11-20": 1, "2020-11-27": 1, "2020-12-20": 1, "2020-12-25": 1, "2021-01-01": 1, "2021-01-09": 1, "2021-01-30": 1, "2021-04-02": 1, "2021-04-03": 1, "2021-04-05": 1, "2021-04-09": 1, "2021-04-11": 1, "2021-05-02": 1, "2021-05-08": 1, "2021-05-19": 1, "2021-05-22": 1, "2021-05-28": 1, "2021-06-04": 1, "2021-06-08": 1, "2021-06-12": 1, "2021-06-14": 1, "2021-06-19": 1, "2021-06-20": 1, "2021-06-26": 1, "2021-07-02": 1, "2021-07-03": 1, "2021-07-04": 1, "2021-07-10": 1, "2021-07-11": 1, "2021-07-14": 1, "2021-07-17": 1, "2021-07-18": 1, "2021-07-19": 1, "2021-07-23": 1, "2021-07-24": 1, "2021-07-25": 1, "2021-07-31": 1, "2021-08-01": 1, "2021-08-02": 1, "2021-08-06": 1, "2021-08-07": 1, "2021-08-08": 1, "2021-08-09": 1, "2021-08-10": 1, "2021-08-13": 1, "2021-08-14": 1, "2021-08-15": 1, "2021-08-21": 1, "2021-08-22": 1, "2021-08-27": 1, "2021-08-28": 1, "2021-08-29": 1, "2021-09-03": 1, "2021-09-04": 1, "2021-09-05": 1, "2021-09-06": 1, "2021-09-10": 1, "2021-09-11": 1, "2021-09-12": 1, "2021-09-16": 1, "2021-09-17": 1, "2021-09-18": 1, "2021-09-19": 1, "2021-09-24": 1, "2021-09-25": 1, "2021-09-26": 1, "2021-10-01": 1, "2021-10-03": 1, "2021-10-08": 1, "2021-10-09": 1, "2021-10-11": 1, "2021-10-17": 1, "2021-10-23": 1, "2021-10-24": 1, "2021-10-29": 1, "2021-10-30": 1, "2021-10-31": 1, "2021-11-05": 1, "2021-11-12": 1, "2021-11-14": 1, "2021-11-26": 1, "2021-12-03": 1, "2021-12-19": 1, "2021-12-25": 1, "2021-12-26": 1, "2022-01-21": 1, "2022-01-23": 1, "2022-04-10": 1, "2022-04-16": 1, "2022-04-17": 1, "2022-04-18": 1, "2022-04-24": 1, "2022-05-01": 1, "2022-05-11": 1, "2022-05-13": 1, "2022-05-20": 1, "2022-05-27": 1, "2022-06-02": 1, "2022-06-03": 1, "2022-06-12": 1, "2022-06-17": 1, "2022-06-18": 1, "2022-06-21": 1, "2022-06-25": 1, "2022-07-02": 1, "2022-07-08": 1, "2022-07-09": 1, "2022-07-10": 1, "2022-07-16": 1, "2022-07-17": 1, "2022-07-18": 1, "2022-07-22": 1, "2022-07-23": 1, "2022-07-24": 1, "2022-07-25": 1, "2022-07-29": 1, "2022-07-30": 1, "2022-07-31": 1, "2022-08-03": 1, "2022-08-05": 1, "2022-08-06": 1, "2022-08-07": 1, "2022-08-12": 1, "2022-08-13": 1, "2022-08-14": 1, "2022-08-18": 1, "2022-08-19": 1, "2022-08-20": 1, "2022-08-21": 1, "2022-08-26": 1, "2022-08-27": 1, "2022-08-28": 1, "2022-09-03": 1, "2022-09-04": 1, "2022-09-09": 1, "2022-09-10": 1, "2022-09-11": 1, "2022-09-16": 1, "2022-09-17": 1, "2022-09-18": 1, "2022-09-19": 1, "2022-09-21": 1, "2022-09-23": 1, "2022-09-24": 1, "2022-09-25": 1, "2022-09-30": 1, "2022-10-01": 1, "2022-10-02": 1, "2022-10-07": 1, "2022-10-08": 1, "2022-10-09": 1, "2022-10-14": 1, "2022-10-15": 1, "2022-10-21": 1, "2022-10-22": 1, "2022-10-25": 1, "2022-10-28": 1, "2022-11-12": 1, "2022-11-13": 1, "2022-11-20": 1, "2022-11-25": 1, "2022-12-11": 1, "2022-12-30": 1, "2023-01-15": 1, "2023-01-29": 1, "2023-04-08": 1, "2023-04-21": 1, "2023-04-23": 1, "2023-04-24": 1, "2023-04-28": 1, "2023-05-12": 1, "2023-05-13": 1, "2023-05-20": 1, "2023-05-27": 1, "2023-05-30": 1, "2023-06-02": 1, "2023-06-04": 1, "2023-06-10": 1, "2023-06-11": 1, "2023-06-12": 1, "2023-06-17": 1, "2023-06-22": 1, "2023-07-01": 1, "2023-07-02": 1, "2023-07-07": 1, "2023-07-08": 1, "2023-07-09": 1, "2023-07-16": 1, "2023-07-17": 1, "2023-07-18": 1, "2023-07-21": 1, "2023-07-22": 1, "2023-07-23": 1, "2023-07-28": 1, "2023-07-29": 1, "2023-07-30": 1, "2023-08-04": 1, "2023-08-05": 1, "2023-08-06": 1, "2023-08-08": 1, "2023-08-11": 1, "2023-08-12": 1, "2023-08-13": 1, "2023-08-18": 1, "2023-08-19": 1, "2023-08-20": 1, "2023-08-22": 1, "2023-08-25": 1, "2023-08-26": 1, "2023-08-27": 1, "2023-09-01": 1, "2023-09-08": 1, "2023-09-09": 1, "2023-09-10": 1, "2023-09-15": 1, "2023-09-16": 1, "2023-09-17": 1, "2023-09-21": 1, "2023-09-22": 1, "2023-09-23": 1, "2023-09-24": 1, "2023-09-26": 1, "2023-09-29": 1, "2023-09-30": 1, "2023-10-01": 1, "2023-10-06": 1, "2023-10-07": 1, "2023-10-08": 1, "2023-10-14": 1, "2023-10-15": 1, "2023-10-20": 1, "2023-10-22": 1, "2023-10-24": 1, "2023-10-27": 1, "2023-10-28": 1, "2023-11-03": 1, "2023-11-10": 1, "2023-11-12": 1, "2023-11-26": 1, "2023-12-01": 1, "2023-12-23": 1, "2023-12-26": 1, "2024-01-20": 1, "2024-01-26": 1, "2024-04-10": 1, "2024-04-14": 1, "2024-04-19": 1, "2024-04-20": 1, "2024-04-26": 1, "2024-05-01": 1, "2024-05-03": 1, "2024-05-25": 1, "2024-05-26": 1, "2024-05-31": 1, "2024-06-03": 1, "2024-06-06": 1, "2024-06-07": 1, "2024-06-08": 1, "2024-06-16": 1, "2024-06-21": 1, "2024-06-30": 1, "2024-07-05": 1, "2024-07-06": 1, "2024-07-07": 1, "2024-07-12": 1, "2024-07-13": 1, "2024-07-14": 1, "2024-07-18": 1, "2024-07-19": 1, "2024-07-20": 1, "2024-07-21": 1, "2024-07-26": 1, "2024-07-27": 1, "2024-07-28": 1, "2024-07-29": 1, "2024-08-02": 1, "2024-08-03": 1, "2024-08-04": 1, "2024-08-09": 1, "2024-08-11": 1, "2024-08-15": 1, "2024-08-16": 1, "2024-08-18": 1, "2024-08-23": 1, "2024-08-24": 1, "2024-08-25": 1, "2024-08-26": 1, "2024-08-30": 1, "2024-08-31": 1, "2024-09-01": 1, "2024-09-06": 1, "2024-09-07": 1, "2024-09-08": 1, "2024-09-13": 1, "2024-09-15": 1, "2024-09-20": 1, "2024-09-21": 1, "2024-09-22": 1, "2024-09-23": 1, "2024-09-24": 1, "2024-09-27": 1, "2024-09-28": 1, "2024-09-29": 1, "2024-10-04": 1, "2024-10-05": 1, "2024-10-06": 1, "2024-10-11": 1, "2024-10-12": 1, "2024-10-13": 1, "2024-10-20": 1, "2024-10-25": 1, "2024-10-26": 1, "2024-10-27": 1, "2024-10-31": 1, "2024-11-02": 1, "2024-11-15": 1, "2024-11-25": 1, "2024-11-30": 1, "2024-12-13": 1, "2024-12-14": 1, "2024-12-25": 1, "2024-12-26": 1, "2025-01-11": 1, "2025-01-25": 1, "2025-04-04": 1, "2025-04-06": 1, "2025-04-19": 1, "2025-04-26": 1, "2025-04-29": 1, "2025-05-02": 1, "2025-05-05": 1, "2025-05-09": 1, "2025-05-10": 1, "2025-05-11": 1, "2025-05-16": 1, "2025-05-17": 1, "2025-05-18": 1, "2025-05-22": 1, "2025-05-23": 1, "2025-05-24": 1, "2025-05-27": 1, "2025-05-30": 1, "2025-06-01": 1, "2025-06-06": 1, "2025-06-07": 1, "2025-06-08": 1, "2025-06-10": 1, "2025-06-11": 1, "2025-06-13": 1, "2025-06-14": 1, "2025-06-15": 1, "2025-06-16": 1, "2025-06-20": 1, "2025-06-21": 1, "2025-06-27": 1, "2025-06-28": 1, "2025-06-29": 1, "2025-06-30": 1, "2025-07-01": 1, "2025-07-04": 1, "2025-07-05": 1, "2025-07-06": 1, "2025-07-11": 1, "2025-07-12": 1, "2025-07-13": 1, "2025-07-18": 1, "2025-07-19": 1, "2025-07-20": 1, "2025-07-21": 1, "2025-07-23": 1, "2025-07-25": 1, "2025-07-26": 1, "2025-07-27": 1, "2025-07-31": 1, "2025-08-02": 1, "2025-08-03": 1, "2025-08-08": 1, "2025-08-09": 1, "2025-08-10": 1, "2025-08-14": 1, "2025-08-15": 1, "2025-08-16": 1, "2025-08-17": 1, "2025-08-22": 1, "2025-08-24": 1, "2025-08-26": 1, "2025-08-28": 1, "2025-08-29": 1, "2025-08-30": 1, "2025-08-31": 1, "2025-09-04": 1, "2025-09-05": 1, "2025-09-06": 1, "2025-09-07": 1, "2025-09-09": 1, "2025-09-12": 1, "2025-09-13": 1, "2025-09-14": 1, "2025-09-19": 1, "2025-09-21": 1, "2025-09-24": 1, "2025-09-26": 1, "2025-09-27": 1, "2025-09-28": 1, "2025-10-04": 1, "2025-10-05": 1, "2025-10-10": 1, "2025-10-11": 1, "2025-10-17": 1, "2025-10-18": 1, "2025-10-19": 1, "2025-10-23": 1, "2025-10-24": 1, "2025-10-25": 1, "2025-10-26": 1, "2025-11-07": 1, "2025-11-16": 1, "2025-11-21": 1, "2025-11-29": 1, "2025-12-19": 1, "2025-12-21": 1, "2025-12-26": 1, "2026-01-01": 1, "2026-01-10": 1, "2026-01-18": 1, "2026-04-10": 1, "2026-04-11": 1, "2026-04-19": 1, "2026-04-23": 1, "2026-04-26": 1, "2026-05-09": 1, "2026-05-11": 1, "2026-05-15": 1, "2026-05-17": 1, "2026-05-23": 1, "2026-05-30": 1, "2026-06-05": 1, "2026-06-07": 1, "2026-06-08": 1, "2026-06-21": 1, "2026-06-24": 1, "2026-06-26": 1, "2026-06-28": 1, "2026-07-03": 1, "2026-07-04": 1, "2026-07-06": 1, "2026-07-07": 1, "2026-07-10": 1, "2026-07-11": 1};
+
+function showView(name,tab) {
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.querySelectorAll('.nav-tab:not(.refresh)').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('view-'+name).classList.add('active');
+  if(tab&&!tab.classList.contains('refresh'))tab.classList.add('active');
+  if(name==='log'&&!window._ll)loadLog();
+  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}
+}
+function setStatus(live,txt){document.getElementById('sDot').className='status-dot'+(live?' live':'');document.getElementById('sTxt').textContent=txt;}
+function jsonp(url,cb){
+  var name='cb_'+Math.random().toString(36).slice(2);
+  var t=setTimeout(function(){delete window[name];cb(new Error('timeout'));},15000);
+  window[name]=function(d){clearTimeout(t);delete window[name];cb(null,d);};
+  var s=document.createElement('script');s.src=url+(url.indexOf('?')>-1?'&':'?')+'callback='+name;
+  s.onerror=function(){clearTimeout(t);cb(new Error('error'));};
+  document.head.appendChild(s);
+}
+function loadSummary(){
+  setStatus(false,'Connecting...');
+  jsonp(SCRIPT_URL+'?action=summary',function(err,d){
+    if(err||!d||d.error){setStatus(false,'Offline');return;}
+    document.getElementById('h-trips').textContent=d.totalTrips;
+    document.getElementById('h-hrs').textContent=Number(d.totalHrs).toLocaleString();
+    document.getElementById('h-com').textContent=Number(d.combinedHrs).toLocaleString();
+    document.getElementById('h-miles').textContent=Number(d.totalMiles).toLocaleString();
+    document.getElementById('k-trips').textContent=Number(d.totalTrips).toLocaleString();
+    document.getElementById('k-lbhrs').textContent=Number(d.totalHrs).toFixed(1);
+    document.getElementById('k-miles').textContent=Number(d.totalMiles).toLocaleString();
+    document.getElementById('k-mdhrs').textContent=d.multiHrs;
+    document.getElementById('k-comhrs').textContent=Number(d.combinedHrs).toLocaleString();
+    setStatus(true,'Live');
+    if(d.lastEntry){
+      var ld=new Date(d.lastEntry);
+      var mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var el=document.getElementById('date-range');
+      if(el)el.innerHTML='July 2020 &ndash; '+mo[ld.getMonth()]+' '+ld.getFullYear();
+    }
+  });
+}
+var allEntries=[];
+function loadLog(){
+  var tb=document.getElementById('log-tbody');
+  tb.innerHTML='<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
+  jsonp(SCRIPT_URL+'?action=log',function(err,d){
+    if(err||!d||d.error){tb.innerHTML='<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--red)">Could not load: '+(d&&d.error?d.error:err.message)+'</td></tr>';return;}
+    allEntries=d.entries.slice().reverse();window._ll=true;renderLog(allEntries);
+  });
+}
+function renderLog(entries){
+  document.getElementById('log-count').textContent='— '+entries.length+' entries';
+  var tb=document.getElementById('log-tbody');
+  if(!entries.length){tb.innerHTML='<tr><td colspan="13" style="text-align:center;padding:30px">No entries</td></tr>';return;}
+  tb.innerHTML=entries.map(function(e){
+    var isRib=e.vessel&&e.vessel.indexOf('Highfield')>-1;
+    var tag=isRib?'<span class="tag tag-rib">Highfield</span>':'<span class="tag tag-bb">Baby Blush</span>';
+    return '<tr><td><strong>'+e.date+'</strong></td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+tag+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+e.cumHrs+'</strong></td><td>'+e.miles+'</td><td><strong>'+e.cumMiles+'</strong></td><td>'+e.weather+'</td><td>'+(e.windKnots?e.windKnots+'kn '+e.windDir:'')+'</td><td>'+e.details+'</td></tr>';
+  }).join('');
+}
+function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
+function checkPasscode(val){
+  if(val.length===4){
+    if(val==='0326'){document.getElementById('passcode-gate').style.display='none';document.getElementById('entry-form').style.display='block';document.getElementById('passcode-input').value='';}
+    else{document.getElementById('passcode-err').style.display='block';setTimeout(function(){document.getElementById('passcode-input').value='';document.getElementById('passcode-err').style.display='none';},1200);}
+  }else{document.getElementById('passcode-err').style.display='none';}
+}
+function updateVessel(){var v=document.getElementById('f-vessel').value;document.getElementById('f-boatname').value=v.indexOf('Highfield')>-1?'RIB':'Baby Blush';document.getElementById('f-engines').value=v.indexOf('Highfield')>-1?'Single Engine':'Twin Engine';}
+function calcDuration(){var s=document.getElementById('f-start').value;var e=document.getElementById('f-end').value;if(!s||!e)return;var sm=parseInt(s)*60+parseInt(s.split(':')[1]);var em=parseInt(e)*60+parseInt(e.split(':')[1]);var m=em-sm;if(m<0)m+=1440;document.getElementById('f-dur').value=Math.round(m/60*100)/100;}
+function showToast(type,msg){var t=document.getElementById('toast');t.className='toast '+type;t.textContent=msg;setTimeout(function(){t.style.display='none';},5000);}
+function submitEntry(){
+  var btn=document.getElementById('submit-btn');
+  var date=document.getElementById('f-date').value,from=document.getElementById('f-from').value.trim(),to=document.getElementById('f-to').value.trim();
+  var start=document.getElementById('f-start').value,end=document.getElementById('f-end').value;
+  var miles=document.getElementById('f-miles').value,details=document.getElementById('f-details').value.trim();
+  if(!date||!from||!to||!start||!end||!miles||!details){showToast('error','Please fill all required fields');return;}
+  btn.disabled=true;btn.textContent='Saving...';
+  var trip={date:date,from:from,to:to,tripType:document.getElementById('f-triptype').value,vessel:document.getElementById('f-vessel').value,boatName:document.getElementById('f-boatname').value,engines:document.getElementById('f-engines').value,startTime:start,endTime:end,duration:document.getElementById('f-dur').value||0,miles:miles,weather:document.getElementById('f-weather').value,windKnots:document.getElementById('f-windkn').value,windDir:document.getElementById('f-winddir').value,details:details};
+  fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addTrip',trip:trip})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error);showToast('success','Saved: '+d.message);resetForm();window._ll=false;loadSummary();}).catch(function(e){showToast('error','Error: '+e.message);}).finally(function(){btn.disabled=false;btn.textContent='Save to Log Book';});
+}
+function resetForm(){['f-from','f-to','f-dur','f-miles','f-details','f-windkn'].forEach(function(id){document.getElementById(id).value=''});['f-weather','f-winddir'].forEach(function(id){document.getElementById(id).selectedIndex=0});document.getElementById('f-date').valueAsDate=new Date();document.getElementById('f-start').value='';document.getElementById('f-end').value='';}
+
+function refreshCharts(btn){
+  btn.textContent='Loading...';btn.disabled=true;
+  jsonp(SCRIPT_URL+'?action=log',function(err,d){
+    btn.innerHTML='&#8635; Update';btn.disabled=false;
+    if(err||!d||d.error){alert('Could not load live data');return;}
+    var entries=d.entries;
+    var months=["2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07"];
+    var mc={};months.forEach(function(m){mc[m]=0;});
+    entries.forEach(function(e){
+      var dt=e.date;
+      var ym;
+      if(dt&&dt.length>=7&&dt[4]==='-'){ym=dt.slice(0,7);}  // 2026-07-11 format
+      else if(dt){var d=new Date(dt);if(!isNaN(d)){var y=d.getFullYear();var m=d.getMonth()+1;ym=y+'-'+(m<10?'0':'')+m;}}  // any other format
+      if(ym&&mc[ym]!==undefined)mc[ym]++;
+    });
+    var mv=months.map(function(m){return mc[m]||0;});
+    var rv=mv.map(function(v,i){var w=mv.slice(Math.max(0,i-1),i+2);return Math.round(w.reduce(function(a,b){return a+b;},0)/w.length*10)/10;});
+    // Only update if we got real data back
+    var totalTrips=mv.reduce(function(a,b){return a+b;},0);
+    if(totalTrips > 0) {
+      window.CH['monthly'].data.datasets[0].data=mv;
+      window.CH['monthly'].data.datasets[1].data=rv;
+      window.CH['monthly'].update();
+    }
+    var dirOrder=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    var dc={};dirOrder.forEach(function(dir){dc[dir]=0;});
+    entries.forEach(function(e){if(e.windDir&&dc[e.windDir]!==undefined)dc[e.windDir]++;});
+    window.CH['wind-dir'].data.datasets[0].data=dirOrder.map(function(dir){return dc[dir]||0;});window.CH['wind-dir'].update();
+    function catD(det){var d=det.toLowerCase();if(d.indexOf('studland')>-1||d.indexOf('old harry')>-1)return'Studland / Old Harry';if(d.indexOf('bournemouth')>-1)return'Bournemouth';if(d.indexOf('wareham')>-1||d.indexOf('pottery')>-1)return'Wareham River';if(d.indexOf('chapmans')>-1)return'Chapmans Pool';if(d.indexOf('bridport')>-1)return'Bridport';return'Poole Harbour';}
+    var destO=['Poole Harbour','Studland / Old Harry','Bournemouth','Wareham River','Chapmans Pool','Isle of Wight','Bridport'];
+    var destC={};entries.forEach(function(e){var c=catD(e.details);destC[c]=(destC[c]||0)+1;});
+    window.CH['dest'].data.datasets[0].data=destO.map(function(d){return destC[d]||0;});window.CH['dest'].update();
+    var yh={},ymi={};entries.forEach(function(e){var y=e.date.slice(0,4);yh[y]=(yh[y]||0)+(e.duration||0);ymi[y]=(ymi[y]||0)+(e.miles||0);});
+    var yrs=Object.keys(yh).sort();
+    window.CH['annual'].data.labels=yrs.map(function(y){return y+(y==='2020'?' (Jul+)':y==='2026'?' (to Jul)':'');});
+    window.CH['annual'].data.datasets[0].data=yrs.map(function(y){return Math.round(yh[y]*10)/10;});
+    window.CH['annual'].data.datasets[1].data=yrs.map(function(y){return Math.round(ymi[y]);});window.CH['annual'].update();
+    // Heatmap not updated on refresh - static historical data
+    btn.innerHTML='&#10003; Updated';btn.style.color='var(--green)';
+    setTimeout(function(){btn.innerHTML='&#8635; Update';btn.style.color='';},3000);
+  });
+}
+
+// Build heatmap
+(function(){
+  var container=document.getElementById('heatmap');
+  var clrs=['#F0F4F8','#B8D4E8','#5BA3D9','#2E75B6'];
+  function gc(c){return c===0?clrs[0]:c===1?clrs[1]:c===2?clrs[2]:clrs[3];}
+  function fd(d){var y=d.getFullYear();var mo=d.getMonth()+1;var dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
+  var cur=new Date(2020,6,1);var end=new Date(2026,6,31);
+  var allM={};
+  while(cur<=end){var y=cur.getFullYear();var mo=cur.getMonth();var ym=y+'-'+(mo<9?'0':'')+(mo+1);if(!allM[ym])allM[ym]=[];allM[ym].push(new Date(cur));cur.setDate(cur.getDate()+1);}
+  Object.keys(allM).forEach(function(ym){
+    var days=allM[ym];
+    var mDiv=document.createElement('div');mDiv.className='hm-month';
+    var lbl=document.createElement('div');lbl.className='hm-label';
+    var d=new Date(ym+'-15');lbl.textContent=d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
+    mDiv.appendChild(lbl);
+    var wd=document.createElement('div');wd.className='hm-weeks';
+    var col=document.createElement('div');col.className='hm-col';
+    var fd0=days[0].getDay();
+    for(var p=0;p<(fd0===0?6:fd0-1);p++){var pad=document.createElement('div');pad.style.cssText='width:10px;height:10px';col.appendChild(pad);}
+    days.forEach(function(day){
+      var dow=day.getDay();
+      if(dow===1&&col.children.length>0){wd.appendChild(col);col=document.createElement('div');col.className='hm-col';}
+      var ds=fd(day);var cnt=HM[ds]||0;
+      var cell=document.createElement('div');cell.className='hm-cell';cell.style.background=gc(cnt);cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':''):': no trip');
+      col.appendChild(cell);
+    });
+    if(col.children.length>0)wd.appendChild(col);
+    mDiv.appendChild(wd);container.appendChild(mDiv);
+  });
+})();
+
+// Build charts - data embedded directly as literals
+window.CH = {};
+window.CH['monthly'] = new Chart(document.getElementById('ch-monthly'),{
+  type: 'bar',
+  data: {
+    labels: ["2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07"],
+    datasets: [
+      {
+        label: 'Trips',
+        data: [5, 12, 14, 10, 5, 2, 3, 0, 0, 5, 5, 7, 13, 15, 14, 11, 4, 4, 2, 0, 0, 5, 5, 7, 14, 14, 14, 11, 4, 2, 2, 0, 0, 5, 5, 7, 14, 14, 14, 11, 4, 3, 2, 0, 0, 5, 5, 7, 14, 14, 14, 11, 4, 4, 2, 0, 0, 5, 13, 16, 16, 16, 14, 11, 4, 3, 3, 0, 0, 5, 6, 7, 6],
+        backgroundColor: '#2E75B6',
+        borderRadius: 3,
+        yAxisID: 'y'
+      },
+      {
+        label: '3-Month Avg',
+        data: [8.5, 10.3, 12.0, 9.7, 5.7, 3.3, 1.7, 1.0, 1.7, 3.3, 5.7, 8.3, 11.7, 14.0, 13.3, 9.7, 6.3, 3.3, 2.0, 0.7, 1.7, 3.3, 5.7, 8.7, 11.7, 14.0, 13.0, 9.7, 5.7, 2.7, 1.3, 0.7, 1.7, 3.3, 5.7, 8.7, 11.7, 14.0, 13.0, 9.7, 6.0, 3.0, 1.7, 0.7, 1.7, 3.3, 5.7, 8.7, 11.7, 14.0, 13.0, 9.7, 6.3, 3.3, 2.0, 0.7, 1.7, 6.0, 11.3, 15.0, 16.0, 15.3, 13.7, 9.7, 6.0, 3.3, 2.0, 1.0, 1.7, 3.7, 6.0, 6.3, 6.5],
+        type: 'line',
+        borderColor: '#ED7D31',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: false,
+        yAxisID: 'y'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { family: 'Segoe UI', size: 11 } } } },
+    scales: {
+      x: { ticks: { maxRotation: 60, font: { size: 8 }, maxTicksLimit: 30 } },
+      y: { beginAtZero: true, type: 'linear', position: 'left' }
+    }
+  }
+});
+
+window.CH['tod'] = new Chart(document.getElementById('ch-tod'),{
+  type:'doughnut',
+  data:{labels:["Dawn (04-07)", "Morning (07-10)", "Mid-Morning (10-12)", "Lunchtime (12-14)", "Afternoon (14-17)", "Evening (17-21)", "Night (21+)"],datasets:[{data:[113, 166, 64, 64, 6, 80, 0],backgroundColor:['#0D2B4E','#1F4E79','#2E75B6','#5BA3D9','#90C4E0','#ED7D31','#FFC000'],borderWidth:2,borderColor:'#fff'}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:8}}}}
+});
+
+window.CH['wind-dec'] = new Chart(document.getElementById('ch-wind-dec'),{
+  type:'bar',
+  data:{labels:["Calm (0-5 kn)", "Light (6-10 kn)", "Moderate (11-15 kn)", "Fresh (16-20 kn)"],datasets:[{label:'Trips',data:[109, 247, 109, 27],backgroundColor:['#00B050','#70AD47','#FFC000','#ED7D31'],borderRadius:6}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+});
+
+window.CH['wind-dir'] = new Chart(document.getElementById('ch-wind-dir'),{
+  type:'radar',
+  data:{labels:["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"],datasets:[{label:'Trips',data:[16, 31, 32, 18, 20, 19, 21, 16, 26, 32, 61, 73, 46, 24, 33, 22],backgroundColor:'rgba(46,117,182,0.15)',borderColor:'#1F4E79',borderWidth:2,pointBackgroundColor:'#1F4E79',pointRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,ticks:{font:{size:8},backdropColor:'transparent',maxTicksLimit:4},pointLabels:{font:{size:10,weight:'bold'}}}}}
+});
+
+window.CH['dest'] = new Chart(document.getElementById('ch-dest'),{
+  type:'bar',
+  data:{labels:["Poole Harbour", "Studland / Old Harry", "Bournemouth", "Wareham River", "Chapmans Pool", "Bridport"],datasets:[{label:'Trips',data:[249, 191, 40, 9, 3, 1],backgroundColor:['#2E75B6','#5BA3D9','#ED7D31','#70AD47','#FFC000','#00B050','#9E6DB8'],borderRadius:5}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+});
+
+window.CH['annual'] = new Chart(document.getElementById('ch-annual'),{
+  type:'bar',
+  data:{labels:["2020 (Jul+)", "2021", "2022", "2023", "2024", "2025", "2026 (to Jul)"],datasets:[{label:'Hours',data:[181.0, 267.1, 267.1, 282.3, 272.6, 278.7, 79.6],backgroundColor:'#1F4E79',borderRadius:4},{label:'Miles (nm)',data:[392.0, 662.0, 693.0, 748.0, 655.0, 739.0, 273.0],backgroundColor:'#70AD47',borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Segoe UI',size:11}}}},scales:{y:{beginAtZero:true}}}
+});
+
+// Init form
+document.getElementById('f-date').valueAsDate=new Date();
+document.getElementById('f-start').addEventListener('change',calcDuration);
+document.getElementById('f-end').addEventListener('change',calcDuration);
+loadSummary();
+</script>
+</body>
+</html>
