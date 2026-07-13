@@ -122,6 +122,47 @@ tbody td{padding:7px 10px;border-bottom:1px solid #EEF2F6;white-space:nowrap}
 .gate p{color:var(--muted);font-size:.88rem;margin-bottom:20px}
 .gate input{font-size:1.6rem;letter-spacing:8px;text-align:center;width:110px;padding:10px;border:2px solid var(--blue);border-radius:10px;outline:none}
 footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border-top:1px solid var(--light)}
+
+/* ── Quick Log ── */
+.ql-wrap{max-width:500px;margin:0 auto;padding:20px 16px 40px}
+.ql-card{background:var(--white);border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:14px}
+.ql-status{text-align:center;padding:32px 20px}
+.ql-status .big{font-size:4rem;line-height:1;margin-bottom:8px}
+.ql-timer{font-size:3rem;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;letter-spacing:2px;margin:12px 0}
+.ql-nm{font-size:1.8rem;font-weight:800;color:var(--blue);margin-bottom:4px}
+.ql-nm-sub{font-size:.8rem;color:var(--muted);text-transform:uppercase}
+.ql-loc{font-size:.78rem;color:var(--muted);margin-top:8px;min-height:20px}
+.ql-track-count{font-size:.75rem;color:var(--green);margin-top:4px}
+
+.btn-start{width:100%;padding:20px;font-size:1.3rem;font-weight:800;border-radius:14px;border:none;cursor:pointer;transition:all .2s;background:var(--green);color:#fff;letter-spacing:.5px}
+.btn-start:hover{background:#005A30;transform:scale(1.01)}
+.btn-stop{width:100%;padding:20px;font-size:1.3rem;font-weight:800;border-radius:14px;border:none;cursor:pointer;transition:all .2s;background:var(--red);color:#fff;letter-spacing:.5px;animation:pulse-red 1.5s infinite}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(192,0,32,.4)}50%{box-shadow:0 0 0 12px rgba(192,0,32,0)}}
+.btn-stop:hover{background:#8B0000}
+
+.ql-gps-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:14px}
+.ql-gps-ok{background:#E3F9E5;color:#005A30}
+.ql-gps-wait{background:#FFF2CC;color:#7D5A00}
+.ql-gps-err{background:#FFE8EC;color:var(--red)}
+.gps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.gps-dot.ok{background:var(--green);animation:pulse 1.5s infinite}
+.gps-dot.wait{background:var(--amber)}
+.gps-dot.err{background:var(--red)}
+
+.ql-summary{background:var(--light);border-radius:12px;padding:16px;margin:16px 0}
+.ql-sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #D0DCE8;font-size:.85rem}
+.ql-sum-row:last-child{border-bottom:none;font-weight:700;color:var(--navy)}
+.ql-sum-val{font-weight:700;color:var(--navy)}
+
+.btn-gpx{width:100%;padding:14px;font-size:.95rem;font-weight:700;border-radius:10px;border:2px solid var(--blue);cursor:pointer;background:var(--white);color:var(--blue);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-gpx:hover{background:var(--light)}
+.btn-fill{width:100%;padding:14px;font-size:.95rem;font-weight:700;border-radius:10px;border:none;cursor:pointer;background:var(--navy);color:#fff}
+.btn-fill:hover{background:#16395a}
+
+.ql-wake-note{font-size:.72rem;color:var(--muted);text-align:center;padding:8px;line-height:1.5}
+.track-map{width:100%;height:200px;border-radius:10px;background:#E8F4FD;display:flex;align-items:center;justify-content:center;margin:12px 0;position:relative;overflow:hidden}
+.track-map canvas{position:absolute;inset:0}
+
 </style>
 </head>
 <body>
@@ -131,7 +172,8 @@ footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showView('dashboard',this)">Dashboard</button>
       <button class="nav-tab" onclick="showView('log',this)">Log Book</button>
-      <button class="nav-tab" onclick="showView('entry',this)">+ New Entry</button>
+      <button class="nav-tab" onclick="showView('entry',this)">&#9998; Manual Log</button>
+      <button class="nav-tab" onclick="showView('quicklog',this)">&#128648; Quick Log</button>
       <button class="nav-tab refresh" onclick="refreshCharts(this)">&#8635; Update</button>
     </div>
     <div class="nav-status"><div class="status-dot" id="sDot"></div><span id="sTxt">...</span></div>
@@ -222,8 +264,8 @@ footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Start Date</th><th>End Date</th><th>From</th><th>To</th><th>Type</th><th>Vessel</th><th>Start</th><th>End</th><th>Hrs</th><th>Cum Hrs</th><th>Miles</th><th>Cum Nm</th><th>Night</th><th>GT60</th><th>Weather</th><th>Wind</th><th>Details</th></tr></thead>
-        <tbody id="log-tbody"><tr><td colspan="17" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr></tbody>
+        <thead><tr><th>Start Date</th><th>End Date</th><th>From</th><th>To</th><th>Type</th><th>Vessel</th><th>Start</th><th>End</th><th>Hrs</th><th>Cum Hrs</th><th>Miles</th><th>Cum Nm</th><th>Night</th><th>GT60</th><th>Weather</th><th>Wind</th><th>Details</th><th>GPX</th></tr></thead>
+        <tbody id="log-tbody"><tr><td colspan="18" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -239,7 +281,7 @@ footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border
       <div id="passcode-err" style="color:var(--red);font-size:.8rem;margin-top:10px;display:none">Incorrect passcode</div>
     </div>
     <div id="entry-form" style="display:none">
-      <div class="fh"><h2>New Log Entry</h2><p>Saves directly to Google Sheets</p></div>
+      <div class="fh"><h2>&#9998; Manual Log Entry</h2><p>Saves directly to Google Sheets</p></div>
       <div id="toast" class="toast"></div>
       <div class="fc"><h3>Trip Details</h3>
         <div class="fg c2">
@@ -290,8 +332,93 @@ footer{text-align:center;padding:14px;font-size:.66rem;color:var(--muted);border
       <div class="fa">
         <button class="btn bp" id="submit-btn" onclick="submitEntry()">Save to Log Book</button>
         <button class="btn bs" onclick="resetForm()">Clear</button>
-        <button class="btn bs" onclick="showView('dashboard',document.querySelector('.nav-tab'))">Cancel</button>
+        <button class="btn bs" onclick="showView('dashboard',document.querySelector('.nav-tab'))">&#8592; Dashboard</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- QUICK LOG -->
+<div id="view-quicklog" class="view">
+  <div class="ql-wrap">
+    <div id="ql-passcode-gate" class="gate">
+      <div style="font-size:2rem;margin-bottom:12px">&#128274;</div>
+      <h2>Skipper Access</h2>
+      <p>Enter passcode to access Quick Log</p>
+      <input type="password" id="ql-passcode-input" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" oninput="checkQLPasscode(this.value)" inputmode="numeric">
+      <div id="ql-passcode-err" style="color:var(--red);font-size:.8rem;margin-top:10px;display:none">Incorrect passcode</div>
+    </div>
+    <div id="ql-content" style="display:none">
+    <div class="ql-card">
+      <div id="ql-gps-bar" class="ql-gps-bar ql-gps-wait">
+        <div class="gps-dot wait" id="ql-gps-dot"></div>
+        <span id="ql-gps-txt">Requesting GPS access...</span>
+      </div>
+
+      <!-- READY STATE -->
+      <div id="ql-ready">
+        <div class="ql-status">
+          <div class="big"><img src="data:image/png;base64,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" style="height:3.5rem;display:inline-block" alt=""></div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:6px">Ready to Track</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:20px">Keep screen on during your trip.<br>GPS tracks every 15 seconds.</div>
+          <div class="ql-loc" id="ql-start-loc">Locating...</div>
+        </div>
+        <button class="btn-start" id="btn-start" onclick="qlStart()">&#9654; Start Trip</button>
+      </div>
+
+      <!-- TRACKING STATE -->
+      <div id="ql-tracking" style="display:none">
+        <div class="ql-status">
+          <div class="big">&#128648;</div>
+          <div class="ql-timer" id="ql-timer">00:00:00</div>
+          <div class="ql-nm" id="ql-nm-display">0.00</div>
+          <div class="ql-nm-sub">Nautical Miles</div>
+          <div class="ql-loc" id="ql-cur-loc"></div>
+          <div class="ql-track-count" id="ql-track-count">&#9679; Recording...</div>
+        </div>
+        <div class="track-map" id="ql-map-wrap">
+          <canvas id="ql-map"></canvas>
+          <div id="ql-map-placeholder" style="color:var(--muted);font-size:.78rem">Track will appear here</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn-stop" id="btn-stop" onclick="qlStop()" style="flex:2">&#9632; Stop &amp; Save</button>
+          <button onclick="qlCancel()" style="flex:1;padding:20px;font-size:.9rem;font-weight:700;border-radius:14px;border:2px solid var(--muted);background:transparent;color:var(--muted);cursor:pointer">&#10005; Cancel</button>
+        </div>
+        <div class="ql-wake-note">&#9888; Keep screen on &middot; Tracking in background not supported in browser</div>
+      </div>
+
+      <!-- SUMMARY STATE -->
+      <div id="ql-summary-view" style="display:none">
+        <div style="text-align:center;padding:16px 0 8px">
+          <div style="font-size:2rem;margin-bottom:4px">&#9989;</div>
+          <div style="font-size:1.1rem;font-weight:800;color:var(--navy)">Trip Complete!</div>
+        </div>
+        <div class="ql-summary">
+          <div class="ql-sum-row"><span>Start Time</span><span class="ql-sum-val" id="qs-start"></span></div>
+          <div class="ql-sum-row"><span>End Time</span><span class="ql-sum-val" id="qs-end"></span></div>
+          <div class="ql-sum-row"><span>Duration</span><span class="ql-sum-val" id="qs-dur"></span></div>
+          <div class="ql-sum-row"><span>Distance</span><span class="ql-sum-val" id="qs-nm"></span></div>
+          <div class="ql-sum-row"><span>Track Points</span><span class="ql-sum-val" id="qs-pts"></span></div>
+          <div class="ql-sum-row"><span>Start Location</span><span class="ql-sum-val" id="qs-from"></span></div>
+          <div class="ql-sum-row"><span>End Location</span><span class="ql-sum-val" id="qs-to"></span></div>
+        </div>
+        <div class="track-map" id="ql-map-wrap2">
+          <canvas id="ql-map2"></canvas>
+        </div>
+        <button class="btn-gpx" onclick="qlDownloadGPX()">&#11123; Download GPX Track File</button>
+        <button class="btn-gpx" id="ql-gpx-drive-btn" onclick="qlSaveGPXtoDrive(null)" style="border-color:var(--green);color:var(--green)">&#9729; Save GPX to Google Drive</button>
+        <button class="btn-fill" onclick="qlFillForm()">&#9654; Fill Log Entry Form</button>
+        <div style="margin-top:10px">
+          <button class="btn-gpx" onclick="qlReset()" style="border-color:var(--muted);color:var(--muted)">&#8635; New Trip</button>
+        <button class="btn-gpx" onclick="showView('dashboard',document.querySelector('.nav-tab'))" style="border-color:var(--red);color:var(--red);margin-top:4px">&#10005; Discard &amp; Exit</button>
+        </div>
+      </div>
+    </div>
+    </div><!-- /ql-content -->
+    <div class="ql-wake-note" id="ql-bottom-note">
+      &#128241; For best results: Settings &rarr; Display &rarr; Auto-Lock &rarr; Never<br>
+      GPS accuracy improves after 30 seconds outdoors
     </div>
   </div>
 </div>
@@ -308,7 +435,7 @@ function showView(name,tab){
   document.getElementById('view-'+name).classList.add('active');
   if(tab&&!tab.classList.contains('refresh'))tab.classList.add('active');
   if(name==='log'&&!window._ll)loadLog();
-  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}
+  if(name!=='entry'){document.getElementById('passcode-gate').style.display='block';document.getElementById('entry-form').style.display='none';document.getElementById('passcode-input').value='';}if(name!=='quicklog'){var qg=document.getElementById('ql-passcode-gate');var qc=document.getElementById('ql-content');if(qg)qg.style.display='block';if(qc)qc.style.display='none';var qi=document.getElementById('ql-passcode-input');if(qi)qi.value='';}
 }
 function setStatus(live,txt){document.getElementById('sDot').className='status-dot'+(live?' live':'');document.getElementById('sTxt').textContent=txt;}
 function jsonp(url,cb){
@@ -349,29 +476,47 @@ function fmtDate(dt){
 }
 function loadLog(){
   var tb=document.getElementById('log-tbody');
-  tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
+  tb.innerHTML='<tr><td colspan="18" style="text-align:center;padding:30px;color:var(--muted)">Loading...</td></tr>';
   jsonp(SCRIPT_URL+'?action=log',function(err,d){
-    if(err||!d||d.error){tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--red)">Could not load</td></tr>';return;}
+    if(err||!d||d.error){tb.innerHTML='<tr><td colspan="18" style="text-align:center;padding:30px;color:var(--red)">Could not load</td></tr>';return;}
     allEntries=d.entries.slice().reverse();window._ll=true;renderLog(allEntries);
   });
 }
 function renderLog(entries){
   document.getElementById('log-count').textContent='— '+entries.length+' entries';
   var tb=document.getElementById('log-tbody');
-  if(!entries.length){tb.innerHTML='<tr><td colspan="17" style="text-align:center;padding:30px">No entries</td></tr>';return;}
+  if(!entries.length){tb.innerHTML='<tr><td colspan="18" style="text-align:center;padding:30px">No entries</td></tr>';return;}
   tb.innerHTML=entries.map(function(e){
     var sd=fmtDate(e.startDate);var ed=fmtDate(e.endDate);
     var isMulti=e.multiDay||(sd&&ed&&sd!==ed);
     var typeTag=isMulti?'<span class="tag tag-multi">Multi Day</span>':'<span class="tag tag-day">Day Trip</span>';
     var nightTag=e.night==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
     var gt60Tag=e.gt60==='Yes'?'<span class="yes">Yes</span>':'<span class="no">No</span>';
-    var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');var cumH=Math.round(Number(e.cumHrs)*10)/10;var cumM=Math.round(Number(e.cumMiles)*10)/10;return '<tr><td><strong>'+sd+'</strong></td><td>'+(sd&&ed&&sd!==ed?ed:'')+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+cumH+'</strong></td><td>'+e.miles+'</td><td><strong>'+cumM+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td></tr>';
+    var wind=(e.windKnots?e.windKnots+'kn':'')+' '+(e.windDir||'');var gpxLink=e.gpxUrl?('<a href="'+e.gpxUrl+'" target="_blank" style="color:var(--green);font-size:.75rem">&#127758; Track</a>'):'--';var cumH=Math.round(Number(e.cumHrs)*10)/10;var cumM=Math.round(Number(e.cumMiles)*10)/10;return '<tr><td><strong>'+sd+'</strong></td><td>'+(sd&&ed&&sd!==ed?ed:'')+'</td><td>'+e.from+'</td><td>'+e.to+'</td><td>'+typeTag+'</td><td>'+e.vessel+'</td><td>'+e.startTime+'</td><td>'+e.endTime+'</td><td>'+e.duration+'</td><td><strong>'+cumH+'</strong></td><td>'+e.miles+'</td><td><strong>'+cumM+'</strong></td><td>'+nightTag+'</td><td>'+gt60Tag+'</td><td>'+e.weather+'</td><td>'+wind.trim()+'</td><td>'+e.details+'</td><td>'+gpxLink+'</td></tr>';
   }).join('');
 }
 function filterLog(q){if(!q){renderLog(allEntries);return;}var lq=q.toLowerCase();renderLog(allEntries.filter(function(e){return Object.values(e).some(function(v){return String(v).toLowerCase().indexOf(lq)>-1;});}));}
+function checkQLPasscode(val){
+  if(val.length===4){
+    if(val==='0326'){
+      document.getElementById('ql-passcode-gate').style.display='none';
+      document.getElementById('ql-content').style.display='block';
+      document.getElementById('ql-passcode-input').value='';
+      qlInit();
+    } else {
+      document.getElementById('ql-passcode-err').style.display='block';
+      setTimeout(function(){
+        document.getElementById('ql-passcode-input').value='';
+        document.getElementById('ql-passcode-err').style.display='none';
+      },1200);
+    }
+  } else {
+    document.getElementById('ql-passcode-err').style.display='none';
+  }
+}
 function checkPasscode(val){
   if(val.length===4){
-    if(val==='0326'){document.getElementById('passcode-gate').style.display='none';document.getElementById('entry-form').style.display='block';document.getElementById('passcode-input').value='';}
+    if(val==='0326'){document.getElementById('passcode-gate').style.display='none';document.getElementById('entry-form').style.display='block';document.getElementById('passcode-input').value='';if(window._qlPendingFill)qlDoFill();}
     else{document.getElementById('passcode-err').style.display='block';setTimeout(function(){document.getElementById('passcode-input').value='';document.getElementById('passcode-err').style.display='none';},1200);}
   }else{document.getElementById('passcode-err').style.display='none';}
 }
@@ -416,13 +561,14 @@ function submitEntry(){
     duration:document.getElementById('f-dur').value||0,miles:miles,
     night:document.getElementById('f-night').checked?'Yes':'No',
     gt60:document.getElementById('f-gt60').checked?'Yes':'No',
+    gpxUrl:window._qlGpxUrl||'',
     weather:document.getElementById('f-weather').value,
     windKnots:document.getElementById('f-windkn').value,
     windDir:document.getElementById('f-winddir').value,
     details:details};
   fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addTrip',trip:trip})})
     .then(function(r){return r.json();})
-    .then(function(d){if(d.error)throw new Error(d.error);showToast('success','Saved: '+d.message);resetForm();window._ll=false;loadSummary();})
+    .then(function(d){if(d.error)throw new Error(d.error);showToast('success','Saved: '+d.message);resetForm();window._ll=false;window._qlGpxUrl='';loadSummary();})
     .catch(function(e){showToast('error','Error: '+e.message);})
     .finally(function(){btn.disabled=false;btn.textContent='Save to Log Book';});
 }
@@ -554,6 +700,322 @@ document.getElementById('f-start-date').addEventListener('change',function(){
     document.getElementById('f-end-date').value=this.value;
   calcDuration();
 });
+/* ── Quick Log ── */
+var QL = {
+  watching: false,
+  watchId: null,
+  timerInterval: null,
+  startTime: null,
+  startPos: null,
+  currentPos: null,
+  track: [],        // [{lat,lon,ts,acc}]
+  totalNm: 0,
+  lastPos: null,
+  startAddress: '',
+  endAddress: '',
+  startTimeStr: '',
+  endTimeStr: '',
+};
+
+function qlInit(){
+  if(!navigator.geolocation){
+    qlSetGPS('err','GPS not available on this device');
+    return;
+  }
+  qlSetGPS('wait','Requesting GPS...');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      QL.startPos = pos;
+      qlSetGPS('ok','GPS ready · Accuracy: '+Math.round(pos.coords.accuracy)+'m');
+      var lat = pos.coords.latitude.toFixed(4);
+      var lon = pos.coords.longitude.toFixed(4);
+      document.getElementById('ql-start-loc').textContent = lat + '°N, ' + lon + '°W';
+      qlReverseGeocode(pos.coords.latitude, pos.coords.longitude, 'ql-start-loc', true);
+    },
+    function(err){
+      qlSetGPS('err','GPS error: ' + err.message);
+    },
+    {enableHighAccuracy:true, timeout:15000}
+  );
+}
+
+function qlSetGPS(state, txt){
+  var bar = document.getElementById('ql-gps-bar');
+  var dot = document.getElementById('ql-gps-dot');
+  var label = document.getElementById('ql-gps-txt');
+  bar.className = 'ql-gps-bar ql-gps-'+state;
+  dot.className = 'gps-dot '+state;
+  label.textContent = txt;
+}
+
+function qlReverseGeocode(lat, lon, elId, isStart){
+  fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var name = d.address && (d.address.marina || d.address.harbour || d.address.suburb || d.address.town || d.address.village || d.address.city || 'Unknown');
+      var el = document.getElementById(elId);
+      if(el) el.textContent = name;
+      if(isStart) QL.startAddress = name;
+      else QL.endAddress = name;
+    })
+    .catch(function(){});
+}
+
+function qlStart(){
+  if(!navigator.geolocation) return;
+  QL.startTime = new Date();
+  QL.startTimeStr = qlFmtTime(QL.startTime);
+  QL.track = [];
+  QL.totalNm = 0;
+  QL.lastPos = null;
+
+  document.getElementById('ql-ready').style.display = 'none';
+  document.getElementById('ql-tracking').style.display = 'block';
+
+  // Start GPS watch
+  QL.watchId = navigator.geolocation.watchPosition(
+    function(pos){
+      qlOnPosition(pos);
+    },
+    function(err){
+      qlSetGPS('err','GPS lost: '+err.message);
+    },
+    {enableHighAccuracy:true, timeout:30000, maximumAge:10000}
+  );
+
+  // Start timer
+  QL.timerInterval = setInterval(function(){
+    var elapsed = new Date() - QL.startTime;
+    document.getElementById('ql-timer').textContent = qlFmtDuration(elapsed);
+  }, 1000);
+
+  // Prevent screen sleep if API available
+  if(navigator.wakeLock){
+    navigator.wakeLock.request('screen').catch(function(){});
+  }
+
+  qlSetGPS('ok','Tracking active');
+}
+
+function qlOnPosition(pos){
+  var lat = pos.coords.latitude;
+  var lon = pos.coords.longitude;
+  var ts  = new Date(pos.timestamp);
+  var acc = pos.coords.accuracy;
+
+  // Add to track
+  QL.track.push({lat:lat, lon:lon, ts:ts, acc:acc});
+  QL.currentPos = pos;
+
+  // Calculate distance from last point
+  if(QL.lastPos){
+    var d = qlHaversineNm(QL.lastPos.lat, QL.lastPos.lon, lat, lon);
+    if(d < 5) QL.totalNm += d; // ignore >5nm jumps (GPS glitch)
+  }
+  QL.lastPos = {lat:lat, lon:lon};
+
+  // Update display
+  document.getElementById('ql-nm-display').textContent = QL.totalNm.toFixed(2);
+  document.getElementById('ql-cur-loc').textContent = lat.toFixed(4)+'°, '+lon.toFixed(4)+'° ±'+Math.round(acc)+'m';
+  document.getElementById('ql-track-count').textContent = '● '+QL.track.length+' track points recorded';
+  qlSetGPS('ok','GPS ● Accuracy: '+Math.round(acc)+'m');
+
+  // Draw mini map
+  qlDrawMap('ql-map', QL.track);
+}
+
+function qlStop(){
+  // Stop watching
+  if(QL.watchId) navigator.geolocation.clearWatch(QL.watchId);
+  clearInterval(QL.timerInterval);
+
+  var endTime = new Date();
+  QL.endTimeStr = qlFmtTime(endTime);
+  var elapsed = endTime - QL.startTime;
+  var durHrs = Math.round(elapsed/1000/60/60*100)/100;
+
+  // Reverse geocode end position
+  if(QL.currentPos){
+    qlReverseGeocode(QL.currentPos.coords.latitude, QL.currentPos.coords.longitude, 'qs-to', false);
+  }
+
+  // Show summary
+  document.getElementById('ql-tracking').style.display='none';
+  document.getElementById('ql-summary-view').style.display='block';
+  document.getElementById('qs-start').textContent = QL.startTimeStr;
+  document.getElementById('qs-end').textContent = QL.endTimeStr;
+  document.getElementById('qs-dur').textContent = qlFmtDuration(elapsed)+' ('+durHrs+' hrs)';
+  document.getElementById('qs-nm').textContent = QL.totalNm.toFixed(2)+' nm';
+  document.getElementById('qs-pts').textContent = QL.track.length;
+  document.getElementById('qs-from').textContent = QL.startAddress || 'Resolving...';
+  document.getElementById('qs-to').textContent = QL.endAddress || 'Resolving...';
+
+  // Draw final map
+  setTimeout(function(){qlDrawMap('ql-map2', QL.track);},100);
+}
+
+function qlDrawMap(canvasId, track){
+  var canvas = document.getElementById(canvasId);
+  if(!canvas||!track||track.length<2) return;
+  var wrap = canvas.parentElement;
+  canvas.width = wrap.offsetWidth;
+  canvas.height = wrap.offsetHeight;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Find bounds
+  var lats = track.map(function(p){return p.lat;});
+  var lons = track.map(function(p){return p.lon;});
+  var minLat=Math.min.apply(null,lats), maxLat=Math.max.apply(null,lats);
+  var minLon=Math.min.apply(null,lons), maxLon=Math.max.apply(null,lons);
+  var pad=20;
+
+  function toX(lon){return pad+(lon-minLon)/(maxLon-minLon||0.001)*(canvas.width-pad*2);}
+  function toY(lat){return pad+(maxLat-lat)/(maxLat-minLat||0.001)*(canvas.height-pad*2);}
+
+  // Background
+  ctx.fillStyle='#EBF3FB';ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Track line
+  ctx.beginPath();ctx.moveTo(toX(track[0].lon),toY(track[0].lat));
+  track.forEach(function(p){ctx.lineTo(toX(p.lon),toY(p.lat));});
+  ctx.strokeStyle='#2E75B6';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+
+  // Start dot (green)
+  ctx.beginPath();ctx.arc(toX(track[0].lon),toY(track[0].lat),6,0,Math.PI*2);
+  ctx.fillStyle='#00B050';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+
+  // End dot (red)
+  var last=track[track.length-1];
+  ctx.beginPath();ctx.arc(toX(last.lon),toY(last.lat),6,0,Math.PI*2);
+  ctx.fillStyle='#C00020';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+
+  // Hide placeholder
+  var ph=document.getElementById(canvasId==='ql-map'?'ql-map-placeholder':null);
+  if(ph)ph.style.display='none';
+}
+
+function qlBuildGPX(){
+  var lines=['<?xml version="1.0" encoding="UTF-8"?>',
+    '<gpx version="1.1" creator="Steve Harding RYA Log" xmlns="http://www.topografix.com/GPX/1/1">',
+    '  <trk><name>RYA Log '+QL.startTimeStr+'</name><trkseg>'];
+  QL.track.forEach(function(p){
+    lines.push('    <trkpt lat="'+p.lat+'" lon="'+p.lon+'"><time>'+p.ts.toISOString()+'</time></trkpt>');
+  });
+  lines.push('  </trkseg></trk></gpx>');
+  return lines.join('\n');
+}
+
+function qlDownloadGPX(){
+  if(!QL.track.length){alert('No track data');return;}
+  var gpx=qlBuildGPX();
+  var blob=new Blob([gpx],{type:'application/gpx+xml'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='RYA_Track_'+QL.startTimeStr.replace(':','-')+'.gpx';
+  a.click();
+}
+
+function qlSaveGPXtoDrive(cb){
+  if(!QL.track.length){if(cb)cb(null);return;}
+  var gpx=qlBuildGPX();
+  var filename='RYA_Track_'+QL.startTime.toISOString().slice(0,10)+'_'+QL.startTimeStr.replace(':','')+'.gpx';
+  var btn=document.getElementById('ql-gpx-drive-btn');
+  if(btn){btn.textContent='Saving to Drive...';btn.disabled=true;}
+  fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveGpx',gpxContent:gpx,filename:filename})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error) throw new Error(d.error);
+      QL.gpxDriveUrl = d.url;
+      QL.gpxDownloadUrl = d.downloadUrl;
+      if(btn){btn.textContent='✓ Saved to Google Drive';btn.style.color='var(--green)';}
+      if(cb) cb(d.url);
+    })
+    .catch(function(e){
+      if(btn){btn.textContent='✗ Save failed - download instead';btn.disabled=false;}
+      qlDownloadGPX();
+      if(cb) cb(null);
+    });
+}
+
+function qlFillForm(){
+  // Switch to entry view and pre-populate
+  showView('entry', document.querySelector('.nav-tab[onclick*=entry]'));
+  // Need passcode first - but pre-populate fields after unlock
+  window._qlPrefill = {
+    date: QL.startTime.toISOString().slice(0,10),
+    startTime: QL.startTimeStr,
+    endTime: QL.endTimeStr,
+    miles: Math.round(QL.totalNm*10)/10,
+    dur: Math.round((new Date()-QL.startTime)/1000/60/60*100)/100,
+    from: QL.startAddress,
+    to: QL.endAddress,
+  };
+  // If already unlocked, fill now
+  if(document.getElementById('entry-form').style.display!=='none'){
+    qlDoFill();
+  } else {
+    // Will fill after passcode entry - hook into checkPasscode
+    window._qlPendingFill = true;
+  }
+}
+
+function qlDoFill(){
+  var p = window._qlPrefill;
+  if(!p) return;
+  document.getElementById('f-start-date').value = p.date;
+  document.getElementById('f-end-date').value = p.date;
+  document.getElementById('f-start-time').value = p.startTime;
+  document.getElementById('f-end-time').value = p.endTime;
+  document.getElementById('f-miles').value = p.miles;
+  document.getElementById('f-dur').value = p.dur;
+  if(p.from) document.getElementById('f-from').value = p.from;
+  if(p.to)   document.getElementById('f-to').value = p.to;
+  window._qlPrefill = null;
+  window._qlPendingFill = false;
+}
+
+function qlCancel(){
+  if(confirm('Are you sure you want to cancel this trip? All tracking data will be lost.')){
+    if(QL.watchId) navigator.geolocation.clearWatch(QL.watchId);
+    clearInterval(QL.timerInterval);
+    QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
+    document.getElementById('ql-tracking').style.display='none';
+    document.getElementById('ql-ready').style.display='block';
+    document.getElementById('ql-nm-display').textContent='0.00';
+    document.getElementById('ql-timer').textContent='00:00:00';
+    qlSetGPS('ok','GPS ready');
+  }
+}
+function qlReset(){
+  QL.track=[];QL.totalNm=0;QL.startTime=null;QL.lastPos=null;
+  document.getElementById('ql-summary-view').style.display='none';
+  document.getElementById('ql-ready').style.display='block';
+  document.getElementById('ql-nm-display').textContent='0.00';
+  document.getElementById('ql-timer').textContent='00:00:00';
+  qlInit();
+}
+
+function qlHaversineNm(lat1,lon1,lat2,lon2){
+  var R=3440.065; // Earth radius in nm
+  var dLat=(lat2-lat1)*Math.PI/180;
+  var dLon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+        Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+        Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function qlFmtTime(d){
+  return (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+}
+
+function qlFmtDuration(ms){
+  var s=Math.floor(ms/1000);
+  var h=Math.floor(s/3600);var m=Math.floor((s%3600)/60);var sec=s%60;
+  return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(sec<10?'0':'')+sec;
+}
+
 loadSummary();
 </script>
 </body>
