@@ -297,8 +297,8 @@ function submitEntry(){
   if(!date||!from||!to||!start||!end||!miles||!details){showToast('error','Please fill all required fields');return;}
   btn.disabled=true;btn.textContent='Saving...';
   var trip={date:date,from:from,to:to,tripType:document.getElementById('f-triptype').value,vessel:document.getElementById('f-vessel').value,boatName:document.getElementById('f-boatname').value,engines:document.getElementById('f-engines').value,startTime:start,endTime:end,duration:document.getElementById('f-dur').value||0,miles:miles,weather:document.getElementById('f-weather').value,windKnots:document.getElementById('f-windkn').value,windDir:document.getElementById('f-winddir').value,details:details};
-  fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addTrip',trip:trip})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error);showToast('success','Saved: '+d.message);resetForm();window._ll=false;loadSummary();
-setTimeout(function(){}
+  fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addTrip',trip:trip})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error);showToast('success','Saved: '+d.message);resetForm();window._ll=false;loadSummary();}).catch(function(e){showToast('error','Error: '+e.message);}).finally(function(){btn.disabled=false;btn.textContent='Save to Log Book';});
+}
 function resetForm(){['f-from','f-to','f-dur','f-miles','f-details','f-windkn'].forEach(function(id){document.getElementById(id).value=''});['f-weather','f-winddir'].forEach(function(id){document.getElementById(id).selectedIndex=0});document.getElementById('f-date').valueAsDate=new Date();document.getElementById('f-start').value='';document.getElementById('f-end').value='';}
 
 function refreshCharts(btn){
