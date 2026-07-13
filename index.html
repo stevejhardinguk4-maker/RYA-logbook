@@ -323,9 +323,6 @@ function loadSummary(){
   setStatus(false,'Connecting...');
   jsonp(SCRIPT_URL+'?action=summary',function(err,d){
     if(err||!d||d.error){setStatus(false,'Offline - '+((err&&err.message)||'no data'));return;}
-    document.getElementById('h-trips').textContent=Number(d.totalTrips).toLocaleString();
-    document.getElementById('h-hrs').textContent=Number(d.totalHrs).toFixed(1);
-    document.getElementById('h-miles').textContent=Number(d.totalMiles).toLocaleString();
     document.getElementById('k-trips').textContent=Number(d.totalTrips).toLocaleString();
     document.getElementById('k-hrs').textContent=Number(d.totalHrs).toFixed(1);
     document.getElementById('k-miles').textContent=Number(d.totalMiles).toLocaleString();
