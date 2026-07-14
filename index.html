@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.14 -->
+<!-- v1.15 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -260,7 +260,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
     </div>
   </div>
 <div class="kpi-bar">
-    <div class="kpi"><div class="val" id="k-trips">497</div><div class="lbl">Total Trips</div><div class="sub">Log Book</div></div>
+    <div class="kpi"><div class="val" id="k-trips">497</div><div class="lbl">Days on the Water</div><div class="sub">Log Book</div></div>
     <div class="kpi"><div class="val" id="k-hrs">2,236.1</div><div class="lbl">Total Hours</div><div class="sub">Underway</div></div>
     <div class="kpi"><div class="val" id="k-miles">4,707</div><div class="lbl">Nautical Miles</div><div class="sub">All Passages</div></div>
   </div>
@@ -559,7 +559,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.14';
+var APP_VERSION = '1.15';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -577,6 +577,17 @@ document.getElementById('app-version-tag') && (document.getElementById('app-vers
 })();
 
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcl8UzqiDk-TSMb0s81lVQv4TaH9kBF-iPVWf68gE8beTxByMK9ZEDf-2nveCsB1T67Q/exec';
+
+/* Use the existing embedded eagle logo as the browser tab favicon, rather
+   than duplicating its large base64 string a second time in the file. */
+(function setFavicon(){
+  var logoImg = document.querySelector('.nav-brand img');
+  if(!logoImg || !logoImg.src) return;
+  var link = document.querySelector("link[rel~='icon']");
+  if(!link){ link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+  link.type = 'image/png';
+  link.href = logoImg.src;
+})();
 
 /* ── Custom modal (replaces native confirm/alert) ──────────────────────────
    appAlert(msg, opts)            -> Promise<void>, resolves on OK
@@ -673,7 +684,8 @@ function loadSummary(){
   setStatus(false,'Connecting...');
   jsonp(SCRIPT_URL+'?action=summary',function(err,d){
     if(err||!d||d.error){setStatus(false,'Offline - '+((err&&err.message)||'no data'));return;}
-    document.getElementById('k-trips').textContent=Number(d.totalTrips).toLocaleString();
+    // k-trips ("Days on the Water") is set from the heatmap's day-count calc,
+    // not the raw passage total, so it can't disagree with the calendar below.
     document.getElementById('k-hrs').textContent=Number(d.totalHrs).toFixed(1);
     document.getElementById('k-miles').textContent=Number(d.totalMiles).toLocaleString();
     document.getElementById('p-day').textContent=(d.totalTrips-d.multiDay);
@@ -1026,6 +1038,7 @@ function renderHeatmapGrid(dayInfo, totalLabel){
     mDiv.appendChild(wd);container.appendChild(mDiv);
   });
   var tripDays=Object.keys(dayInfo).filter(function(k){return dayInfo[k].count>0;}).length;
+  var kTrips=document.getElementById('k-trips'); if(kTrips) kTrips.textContent=tripDays.toLocaleString();
   document.getElementById('hm-insights').innerHTML=
     '<div class="pill"><strong>'+tripDays+'</strong> unique trip days (2020&ndash;2026)</div>'+
     '<div class="pill">Total: <strong>'+totalLabel+'</strong> logged passages</div>';
