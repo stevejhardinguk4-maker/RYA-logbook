@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.12 -->
+<!-- v1.14 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -559,7 +559,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.12';
+var APP_VERSION = '1.14';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -1637,6 +1637,12 @@ function closeTripPanel(evt){
 }
 
 loadSummary();
+/* Auto-refresh once on page load: the static baked-in dashboard data (fast
+   first paint) never carries multi-day span info, so without this the
+   heatmap can only ever show single-day coloring until someone manually
+   clicks Refresh Dashboard. This closes that gap automatically. */
+var _refreshBtn=document.getElementById('refresh-btn');
+if(_refreshBtn) setTimeout(function(){ refreshCharts(_refreshBtn); }, 300);
 </script>
 </body>
 </html>
