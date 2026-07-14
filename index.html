@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.22 -->
+<!-- v1.23 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -25,7 +25,12 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0}
 .status-dot.live{background:var(--green);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@media(max-width:600px){.nav-brand span{display:none}.nav-tab{padding:5px 6px;font-size:.7rem}.nav-inner{height:auto;padding:6px 8px}}
+@media(max-width:600px){
+  .nav-brand span{display:none}
+  .nav-tab{padding:5px 6px;font-size:.7rem}
+  .nav-inner{height:auto;padding:6px 8px;flex-wrap:wrap}
+  .nav-tabs{order:2;flex-basis:100%;justify-content:center;padding-top:6px;gap:4px}
+}
 .view{display:none}.view.active{display:block}
 .dash-header{background:linear-gradient(135deg,#0D2B4E,var(--navy) 60%,var(--blue));color:#fff;padding:20px 24px}
 .profile-section{display:flex;align-items:center;gap:20px}
@@ -602,7 +607,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.22';
+var APP_VERSION = '1.23';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
