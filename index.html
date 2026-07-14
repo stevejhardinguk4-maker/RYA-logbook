@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.17 -->
+<!-- v1.19 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--navy:#1F4E79;--blue:#2E75B6;--sky:#5BA3D9;--green:#70AD47;--amber:#FFC000;--coral:#ED7D31;--teal:#00B050;--purple:#9E6DB8;--light:#EBF3FB;--bg:#F0F4F8;--text:#1a2a3a;--muted:#6b7c8e;--white:#fff;--red:#C00020;--success:#00875A;--pill-day:#CFE4F7;--pill-multi:#5BA3D9;--pill-gt60:#2E75B6;--pill-night:#0A1930}
+:root{--navy:#1F4E79;--blue:#2E75B6;--sky:#5BA3D9;--green:#70AD47;--amber:#FFC000;--coral:#ED7D31;--teal:#00B050;--purple:#9E6DB8;--light:#EBF3FB;--bg:#F0F4F8;--text:#1a2a3a;--muted:#6b7c8e;--white:#fff;--red:#C00020;--success:#00875A;--pill-day:#CFE4F7;--pill-multi:#5BA3D9;--pill-gt60:#2E75B6;--pill-night:#0A1930;--flag-gt60:#ED7D31;--flag-night:#0A1930}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 nav{background:var(--navy);position:sticky;top:0;z-index:100}
@@ -57,8 +57,14 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .trip-pill:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .tp-day{background:var(--pill-day);color:var(--navy)}
 .tp-multi{background:var(--pill-multi);color:#fff}
-.tp-gt60{background:var(--pill-gt60);color:#fff}
-.tp-night{background:var(--pill-night);color:#B9CFEE}
+.tp-gt60{background:var(--flag-gt60);color:#fff}
+.tp-night{background:var(--flag-night);color:#fff}
+.trip-pills-circles{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.trip-pill.circle{flex-direction:column;justify-content:center;text-align:center;border-radius:50%;width:118px;height:118px;padding:10px;gap:2px}
+.trip-pill.circle .tp-icon{font-size:1.15rem}
+.trip-pill.circle .tp-num{font-size:1.25rem}
+.trip-pill.circle .tp-label{font-size:.66rem;line-height:1.15}
+.trip-pill.circle .tp-sub{font-size:.6rem}
 .tp-icon{font-size:1.4rem;flex-shrink:0}
 .tp-num{font-size:1.2rem;font-weight:800;line-height:1}
 .tp-label{font-size:.78rem;font-weight:700}
@@ -77,7 +83,10 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .hm-label{font-size:8px;color:var(--muted);margin-bottom:2px;white-space:nowrap}
 .hm-weeks{display:flex;gap:2px}
 .hm-col{display:flex;flex-direction:column;gap:2px}
-.hm-cell{width:10px;height:10px;border-radius:2px}
+.hm-cell{width:10px;height:10px;border-radius:2px;position:relative}
+.hm-badge{position:absolute;width:4px;height:4px;border-radius:50%;box-shadow:0 0 0 1px #fff;pointer-events:none}
+.hm-badge-gt60{background:var(--flag-gt60);top:-1.5px;right:-1.5px}
+.hm-badge-night{background:var(--flag-night);bottom:-1.5px;right:-1.5px}
 .insights{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pill{background:var(--light);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:4px 10px;font-size:.7rem}
 .pill strong{color:var(--navy)}
@@ -292,9 +301,9 @@ tbody tr.clickable:hover{background:#dae8f5!important}
       </div>
     </div>
     <div class="pill-group">
-      <div class="pill-group-label">By condition <span class="pill-group-note">(can overlap with either duration)</span></div>
-      <div class="trip-pills">
-        <div class="trip-pill tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
+      <div class="pill-group-label">By Passage Type <span class="pill-group-note">(can overlap with either duration)</span></div>
+      <div class="trip-pills trip-pills-circles">
+        <div class="trip-pill circle tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
           <span class="tp-icon">&#127758;</span>
           <div class="pill-content">
             <span class="tp-num" id="p-gt60">3</span>
@@ -302,7 +311,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
             <span class="tp-sub"><span id="p-gt60-hrs">600</span> hrs</span>
           </div>
         </div>
-        <div class="trip-pill tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
+        <div class="trip-pill circle tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
           <span class="tp-icon">&#127769;</span>
           <div class="pill-content">
             <span class="tp-num" id="p-night">0</span>
@@ -574,7 +583,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.17';
+var APP_VERSION = '1.19';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -1014,13 +1023,12 @@ function refreshCharts(btn){
    pre-refresh, exact after refreshCharts rebuilds it from live entries). */
 function renderHeatmapGrid(dayInfo, totalLabel){
   var container=document.getElementById('heatmap');container.innerHTML='';
-  var clrsDay=['#F0F4F8','var(--pill-day)','#9DC7EA','#4F86C6'];
+  var clrsDay=['#F0F4F8','var(--pill-day)','#9DC7EA'];
   var clrMulti='var(--pill-multi)';
   function gc(info){
     if(!info||!info.count) return clrsDay[0];
     if(info.multi) return clrMulti;
-    var c=info.count;
-    return c===1?clrsDay[1]:c===2?clrsDay[2]:clrsDay[3];
+    return info.count===1?clrsDay[1]:clrsDay[2];
   }
   function fd(d){var y=d.getFullYear();var mo=d.getMonth()+1;var dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
   var cur=new Date(2020,6,1);var end=new Date(2026,6,31);var allM={};
@@ -1040,9 +1048,14 @@ function renderHeatmapGrid(dayInfo, totalLabel){
       if(dow===1&&col.children.length>0){wd.appendChild(col);col=document.createElement('div');col.className='hm-col';}
       var ds=fd(day);var info=dayInfo[ds];var cnt=info?info.count:0;
       var cell=document.createElement('div');cell.className='hm-cell';cell.style.background=gc(info);
-      cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':'')+(info.multi?' (multi-day)':''):': no trip');
+      var titleFlags=[];
+      if(info&&info.gt60)titleFlags.push('>60nm');
+      if(info&&info.night)titleFlags.push('night');
+      cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':'')+(info.multi?' (multi-day)':'')+(titleFlags.length?' · '+titleFlags.join(', '):''):': no trip');
       if(cnt>0){
         cell.classList.add('has-trip');
+        if(info.gt60){var bG=document.createElement('span');bG.className='hm-badge hm-badge-gt60';cell.appendChild(bG);}
+        if(info.night){var bN=document.createElement('span');bN.className='hm-badge hm-badge-night';cell.appendChild(bN);}
         cell.addEventListener('click', (function(dateStr){
           return function(){ goToFilteredLog(function(e){ return entryCoversDate(e,dateStr); }, 'Trips on '+dateStr); };
         })(ds));
@@ -1056,7 +1069,8 @@ function renderHeatmapGrid(dayInfo, totalLabel){
   var kTrips=document.getElementById('k-trips'); if(kTrips) kTrips.textContent=tripDays.toLocaleString();
   document.getElementById('hm-insights').innerHTML=
     '<div class="pill"><strong>'+tripDays+'</strong> unique trip days (2020&ndash;2026)</div>'+
-    '<div class="pill">Total: <strong>'+totalLabel+'</strong> logged passages</div>';
+    '<div class="pill">Total: <strong>'+totalLabel+'</strong> logged passages</div>'+
+    '<div class="pill" style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:var(--flag-gt60);display:inline-block"></span> &gt;60nm &nbsp; <span style="width:7px;height:7px;border-radius:50%;background:var(--flag-night);display:inline-block"></span> Night</div>';
 }
 /* Fast initial paint from the static baked HM (date->count only, no
    multi-day span info available until a live refresh). */
@@ -1076,13 +1090,17 @@ function rebuildHeatmapFromEntries(entries){
     var isMulti=!!e.multiDay;
     var ed=(isMulti && e.endDate) ? fmtDate(e.endDate) : sd;
     if(ed<sd) ed=sd;
+    var isGt60=e.gt60==='Yes';
+    var isNight=e.night==='Yes';
     var cur=new Date(sd+'T00:00:00');
     var endD=new Date(ed+'T00:00:00');
     while(cur<=endD){
       var ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
-      if(!dayInfo[ds])dayInfo[ds]={count:0,multi:false};
+      if(!dayInfo[ds])dayInfo[ds]={count:0,multi:false,gt60:false,night:false};
       dayInfo[ds].count++;
       if(isMulti)dayInfo[ds].multi=true;
+      if(isGt60)dayInfo[ds].gt60=true;
+      if(isNight)dayInfo[ds].night=true;
       cur.setDate(cur.getDate()+1);
     }
   });
