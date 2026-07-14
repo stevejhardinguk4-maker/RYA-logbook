@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.21 -->
+<!-- v1.22 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -59,7 +59,7 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .tp-multi{background:var(--pill-multi);color:#fff}
 .tp-gt60{background:var(--flag-gt60);color:#fff}
 .tp-night{background:var(--flag-night);color:#fff}
-.trip-pills-squares{display:flex;gap:24px;flex-wrap:wrap}
+.trip-pills-squares{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .trip-pills-circles{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .trip-pill.square,.trip-pill.circle{flex-direction:column;justify-content:center;text-align:center;width:118px;height:118px;padding:10px;gap:2px}
 .trip-pill.square{border-radius:20px}
@@ -602,7 +602,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.21';
+var APP_VERSION = '1.22';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
