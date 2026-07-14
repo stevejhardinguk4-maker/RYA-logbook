@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.15 -->
+<!-- v1.17 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -46,7 +46,13 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .kpi .val{font-size:1.5rem;font-weight:800;color:var(--navy)}
 .kpi .lbl{font-size:.65rem;color:var(--muted);margin-top:3px;text-transform:uppercase}
 .kpi .sub{font-size:.6rem;color:var(--blue);margin-top:1px}
-.trip-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 24px;background:var(--white);border-bottom:2px solid var(--light)}
+.pill-groups{display:flex;gap:0;background:var(--white);border-bottom:2px solid var(--light)}
+.pill-group{flex:1;padding:14px 24px}
+.pill-group+.pill-group{border-left:2px solid var(--light)}
+.pill-group-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px}
+.pill-group-note{font-weight:400;text-transform:none;letter-spacing:normal;opacity:.75}
+.trip-pills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:700px){.pill-groups{flex-direction:column}.pill-group+.pill-group{border-left:none;border-top:2px solid var(--light)}}
 .trip-pill{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-weight:700;cursor:pointer;transition:transform .1s,box-shadow .1s}
 .trip-pill:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .tp-day{background:var(--pill-day);color:var(--navy)}
@@ -58,7 +64,6 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .tp-label{font-size:.78rem;font-weight:700}
 .tp-sub{font-size:.65rem;opacity:.8;margin-top:2px}
 .pill-content{display:flex;flex-direction:column;line-height:1.3;min-width:0}
-@media(max-width:700px){.trip-pills{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:400px){.trip-pills{grid-template-columns:1fr}}
 .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;padding:16px 20px 32px;max-width:1700px;margin:0 auto}
 .card{background:var(--white);border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
@@ -264,37 +269,47 @@ tbody tr.clickable:hover{background:#dae8f5!important}
     <div class="kpi"><div class="val" id="k-hrs">2,236.1</div><div class="lbl">Total Hours</div><div class="sub">Underway</div></div>
     <div class="kpi"><div class="val" id="k-miles">4,707</div><div class="lbl">Nautical Miles</div><div class="sub">All Passages</div></div>
   </div>
-  <div class="trip-pills">
-    <div class="trip-pill tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
-      <span class="tp-icon">&#9728;</span>
-      <div class="pill-content">
-        <span class="tp-num" id="p-day">494</span>
-        <span class="tp-label">Day Trips</span>
-        <span class="tp-sub"><span id="p-day-hrs">1,635</span> hrs</span>
+  <div class="pill-groups">
+    <div class="pill-group">
+      <div class="pill-group-label">By duration</div>
+      <div class="trip-pills">
+        <div class="trip-pill tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
+          <span class="tp-icon">&#9728;</span>
+          <div class="pill-content">
+            <span class="tp-num" id="p-day">494</span>
+            <span class="tp-label">Day-Trip Passages</span>
+            <span class="tp-sub"><span id="p-day-hrs">1,635</span> hrs</span>
+          </div>
+        </div>
+        <div class="trip-pill tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
+          <span class="tp-icon">&#128197;</span>
+          <div class="pill-content">
+            <span class="tp-num" id="p-multi">3</span>
+            <span class="tp-label">Multi-Day Trips</span>
+            <span class="tp-sub"><span id="p-multi-hrs">600</span> hrs</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="trip-pill tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
-      <span class="tp-icon">&#128197;</span>
-      <div class="pill-content">
-        <span class="tp-num" id="p-multi">3</span>
-        <span class="tp-label">Multi Day</span>
-        <span class="tp-sub"><span id="p-multi-hrs">600</span> hrs</span>
-      </div>
-    </div>
-    <div class="trip-pill tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
-      <span class="tp-icon">&#127758;</span>
-      <div class="pill-content">
-        <span class="tp-num" id="p-gt60">3</span>
-        <span class="tp-label">&gt;60nm Passages</span>
-        <span class="tp-sub"><span id="p-gt60-hrs">600</span> hrs</span>
-      </div>
-    </div>
-    <div class="trip-pill tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
-      <span class="tp-icon">&#127769;</span>
-      <div class="pill-content">
-        <span class="tp-num" id="p-night">0</span>
-        <span class="tp-label">Night Passages</span>
-        <span class="tp-sub"><span id="p-night-hrs">0</span> hrs</span>
+    <div class="pill-group">
+      <div class="pill-group-label">By condition <span class="pill-group-note">(can overlap with either duration)</span></div>
+      <div class="trip-pills">
+        <div class="trip-pill tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
+          <span class="tp-icon">&#127758;</span>
+          <div class="pill-content">
+            <span class="tp-num" id="p-gt60">3</span>
+            <span class="tp-label">&gt;60nm Passages</span>
+            <span class="tp-sub"><span id="p-gt60-hrs">600</span> hrs</span>
+          </div>
+        </div>
+        <div class="trip-pill tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
+          <span class="tp-icon">&#127769;</span>
+          <div class="pill-content">
+            <span class="tp-num" id="p-night">0</span>
+            <span class="tp-label">Night Passages</span>
+            <span class="tp-sub"><span id="p-night-hrs">0</span> hrs</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -559,7 +574,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.15';
+var APP_VERSION = '1.17';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
