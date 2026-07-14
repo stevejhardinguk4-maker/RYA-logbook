@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.11 -->
+<!-- v1.12 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--navy:#1F4E79;--blue:#2E75B6;--sky:#5BA3D9;--green:#70AD47;--amber:#FFC000;--coral:#ED7D31;--teal:#00B050;--purple:#9E6DB8;--light:#EBF3FB;--bg:#F0F4F8;--text:#1a2a3a;--muted:#6b7c8e;--white:#fff;--red:#C00020;--success:#00875A}
+:root{--navy:#1F4E79;--blue:#2E75B6;--sky:#5BA3D9;--green:#70AD47;--amber:#FFC000;--coral:#ED7D31;--teal:#00B050;--purple:#9E6DB8;--light:#EBF3FB;--bg:#F0F4F8;--text:#1a2a3a;--muted:#6b7c8e;--white:#fff;--red:#C00020;--success:#00875A;--pill-day:#CFE4F7;--pill-multi:#5BA3D9;--pill-gt60:#2E75B6;--pill-night:#0A1930}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 nav{background:var(--navy);position:sticky;top:0;z-index:100}
@@ -20,7 +20,7 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .nav-tabs{display:flex;gap:2px}
 .nav-tab{background:none;border:none;color:rgba(255,255,255,.65);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;white-space:nowrap}
 .nav-tab:hover,.nav-tab.active{color:#fff;background:rgba(255,255,255,.18)}
-.nav-tab.refresh{color:var(--amber);border:1px solid rgba(255,193,0,.3)}
+.nav-tab.refresh{color:var(--sky);border:1px solid rgba(91,163,217,.4)}
 .nav-status{font-size:.7rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0}
 .status-dot.live{background:var(--green);animation:pulse 2s infinite}
@@ -47,11 +47,12 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .kpi .lbl{font-size:.65rem;color:var(--muted);margin-top:3px;text-transform:uppercase}
 .kpi .sub{font-size:.6rem;color:var(--blue);margin-top:1px}
 .trip-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 24px;background:var(--white);border-bottom:2px solid var(--light)}
-.trip-pill{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-weight:700}
-.tp-day{background:#EBF3FB;color:var(--navy)}
-.tp-multi{background:#FFF2CC;color:#7D5A00}
-.tp-night{background:#1a1a2e;color:#aab4ff}
-.tp-gt60{background:#E3F9E5;color:#005A30}
+.trip-pill{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-weight:700;cursor:pointer;transition:transform .1s,box-shadow .1s}
+.trip-pill:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.tp-day{background:var(--pill-day);color:var(--navy)}
+.tp-multi{background:var(--pill-multi);color:#fff}
+.tp-gt60{background:var(--pill-gt60);color:#fff}
+.tp-night{background:var(--pill-night);color:#B9CFEE}
 .tp-icon{font-size:1.4rem;flex-shrink:0}
 .tp-num{font-size:1.2rem;font-weight:800;line-height:1}
 .tp-label{font-size:.78rem;font-weight:700}
@@ -264,7 +265,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
     <div class="kpi"><div class="val" id="k-miles">4,707</div><div class="lbl">Nautical Miles</div><div class="sub">All Passages</div></div>
   </div>
   <div class="trip-pills">
-    <div class="trip-pill tp-day">
+    <div class="trip-pill tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
       <span class="tp-icon">&#9728;</span>
       <div class="pill-content">
         <span class="tp-num" id="p-day">494</span>
@@ -272,7 +273,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
         <span class="tp-sub"><span id="p-day-hrs">1,635</span> hrs</span>
       </div>
     </div>
-    <div class="trip-pill tp-multi">
+    <div class="trip-pill tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
       <span class="tp-icon">&#128197;</span>
       <div class="pill-content">
         <span class="tp-num" id="p-multi">3</span>
@@ -280,20 +281,20 @@ tbody tr.clickable:hover{background:#dae8f5!important}
         <span class="tp-sub"><span id="p-multi-hrs">600</span> hrs</span>
       </div>
     </div>
-    <div class="trip-pill tp-night">
-      <span class="tp-icon">&#127769;</span>
-      <div class="pill-content">
-        <span class="tp-num" id="p-night">0</span>
-        <span class="tp-label">Night Passages</span>
-        <span class="tp-sub"><span id="p-night-hrs">0</span> hrs</span>
-      </div>
-    </div>
-    <div class="trip-pill tp-gt60">
+    <div class="trip-pill tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
       <span class="tp-icon">&#127758;</span>
       <div class="pill-content">
         <span class="tp-num" id="p-gt60">3</span>
         <span class="tp-label">&gt;60nm Passages</span>
         <span class="tp-sub"><span id="p-gt60-hrs">600</span> hrs</span>
+      </div>
+    </div>
+    <div class="trip-pill tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
+      <span class="tp-icon">&#127769;</span>
+      <div class="pill-content">
+        <span class="tp-num" id="p-night">0</span>
+        <span class="tp-label">Night Passages</span>
+        <span class="tp-sub"><span id="p-night-hrs">0</span> hrs</span>
       </div>
     </div>
   </div>
@@ -558,7 +559,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.11';
+var APP_VERSION = '1.12';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -757,6 +758,33 @@ function returnToDashboard(){
   clearLogFilter();
   showView('dashboard', findNavTab('dashboard'));
 }
+/* entryCoversDate: true if entry's trip (single-day or multi-day span) includes dateStr (YYYY-MM-DD) */
+function entryCoversDate(e, dateStr){
+  var sd=fmtDate(e.startDate);
+  if(!sd) return false;
+  var ed=(e.multiDay && e.endDate) ? fmtDate(e.endDate) : sd;
+  if(ed<sd) ed=sd;
+  return dateStr>=sd && dateStr<=ed;
+}
+/* vesselCategory: single source of truth for the Hours by Vessel chart AND its
+   click-through — both derive from this, so they can never disagree.
+   Uses the real 'vessel'/'boatName' fields the form actually writes (the
+   'engines' field only ever holds "Twin Engine"/"Single Engine", not a
+   specific engine model, so we categorise by vessel/boat instead). */
+function vesselCategory(e){
+  var v=(e.vessel||'').toLowerCase();
+  var bn=(e.boatName||'').toLowerCase();
+  if(v.indexOf('sunseeker')>-1 || bn.indexOf('baby blush')>-1) return 'Baby Blush (Twin Engine)';
+  if(v.indexOf('highfield')>-1 || bn.indexOf('highfield')>-1 || bn.indexOf('blushforce')>-1) return 'Highfield RIB (Single Engine)';
+  return 'Other';
+}
+var WIND_BUCKETS=[{lo:0,hi:5,label:'Calm (0-5 kn)'},{lo:6,hi:10,label:'Light (6-10 kn)'},{lo:11,hi:15,label:'Moderate (11-15 kn)'},{lo:16,hi:20,label:'Fresh (16-20 kn)'}];
+function windBucketLabel(e){
+  var wk=Number(e.windKnots);
+  if(isNaN(wk)) return null;
+  for(var i=0;i<WIND_BUCKETS.length;i++){ if(wk>=WIND_BUCKETS[i].lo && wk<=WIND_BUCKETS[i].hi) return WIND_BUCKETS[i].label; }
+  return null;
+}
 function catDest(det){
   var d=(det||'').toLowerCase();
   if(d.indexOf('studland')>-1||d.indexOf('old harry')>-1)return'Studland / Old Harry';
@@ -773,14 +801,7 @@ function destClickPredicate(label){
   return function(e){ return (e.details||'').toLowerCase().indexOf(lq)>-1 || (e.to||'').toLowerCase().indexOf(lq)>-1 || (e.from||'').toLowerCase().indexOf(lq)>-1; };
 }
 function vesselClickPredicate(label){
-  var lq=label.split('(')[0].trim().toLowerCase();
-  var lq2=(label.match(/\(([^)]+)\)/)||[,''])[1].toLowerCase();
-  return function(e){
-    var hay=((e.vessel||'')+' '+(e.boatName||'')+' '+(e.engines||'')).toLowerCase();
-    if(lq && hay.indexOf(lq)>-1) return true;
-    if(lq2 && hay.indexOf(lq2)>-1) return true;
-    return false;
-  };
+  return function(e){ return vesselCategory(e)===label; };
 }
 var PASSCODE = '0326';
 
@@ -936,21 +957,44 @@ function refreshCharts(btn){
     window.CH['annual'].data.datasets[0].data=yrs.map(function(y){return Math.round(yh[y]*10)/10;});
     window.CH['annual'].data.datasets[1].data=yrs.map(function(y){return Math.round(ymi[y]);});
     window.CH['annual'].update();
-    var multiDay=entries.filter(function(e){return e.multiDay;}).length;
-    var nightT=entries.filter(function(e){return e.night==='Yes';}).length;
-    var gt60T=entries.filter(function(e){return e.gt60==='Yes';}).length;
-    document.getElementById('p-day').textContent=entries.length-multiDay;
-    document.getElementById('p-multi').textContent=multiDay;
-    document.getElementById('p-night').textContent=nightT;
-    document.getElementById('p-gt60').textContent=gt60T;
+    var wb={};WIND_BUCKETS.forEach(function(b){wb[b.label]=0;});
+    entries.forEach(function(e){var lbl=windBucketLabel(e);if(lbl)wb[lbl]++;});
+    window.CH['wind-dec'].data.datasets[0].data=WIND_BUCKETS.map(function(b){return wb[b.label]||0;});
+    window.CH['wind-dec'].update();
+    var vc={};entries.forEach(function(e){var c=vesselCategory(e);vc[c]=(vc[c]||0)+(e.duration||0);});
+    window.CH['vessel'].data.datasets[0].data=window.CH['vessel'].data.labels.map(function(l){return Math.round((vc[l]||0)*10)/10;});
+    window.CH['vessel'].update();
+    rebuildHeatmapFromEntries(entries);
+    var multiE=entries.filter(function(e){return e.multiDay;});
+    var nightE=entries.filter(function(e){return e.night==='Yes';});
+    var gt60E=entries.filter(function(e){return e.gt60==='Yes';});
+    var dayE=entries.filter(function(e){return !e.multiDay;});
+    function sumHrs(list){return Math.round(list.reduce(function(a,e){return a+(e.duration||0);},0)*10)/10;}
+    document.getElementById('p-day').textContent=dayE.length;
+    document.getElementById('p-day-hrs').textContent=sumHrs(dayE).toLocaleString();
+    document.getElementById('p-multi').textContent=multiE.length;
+    document.getElementById('p-multi-hrs').textContent=sumHrs(multiE).toLocaleString();
+    document.getElementById('p-gt60').textContent=gt60E.length;
+    document.getElementById('p-gt60-hrs').textContent=sumHrs(gt60E).toLocaleString();
+    document.getElementById('p-night').textContent=nightE.length;
+    document.getElementById('p-night-hrs').textContent=sumHrs(nightE).toLocaleString();
     btn.innerHTML='&#10003; Dashboard Refreshed';btn.style.color='var(--green)';
     setTimeout(function(){btn.innerHTML='&#8635; Refresh Dashboard';btn.style.color='';btn.disabled=false;},3000);
   });
 }
-function buildHeatmap(){
+/* renderHeatmapGrid: shared renderer. dayInfo[dateStr] = {count, multi:boolean}.
+   totalLabel is the "Total: N logged passages" text (may be approximate
+   pre-refresh, exact after refreshCharts rebuilds it from live entries). */
+function renderHeatmapGrid(dayInfo, totalLabel){
   var container=document.getElementById('heatmap');container.innerHTML='';
-  var clrs=['#F0F4F8','#B8D4E8','#5BA3D9','#2E75B6'];
-  function gc(c){return c===0?clrs[0]:c===1?clrs[1]:c===2?clrs[2]:clrs[3];}
+  var clrsDay=['#F0F4F8','var(--pill-day)','#9DC7EA','#4F86C6'];
+  var clrMulti='var(--pill-multi)';
+  function gc(info){
+    if(!info||!info.count) return clrsDay[0];
+    if(info.multi) return clrMulti;
+    var c=info.count;
+    return c===1?clrsDay[1]:c===2?clrsDay[2]:clrsDay[3];
+  }
   function fd(d){var y=d.getFullYear();var mo=d.getMonth()+1;var dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
   var cur=new Date(2020,6,1);var end=new Date(2026,6,31);var allM={};
   while(cur<=end){var y=cur.getFullYear();var mo=cur.getMonth();var ym=y+'-'+(mo<9?'0':'')+(mo+1);if(!allM[ym])allM[ym]=[];allM[ym].push(new Date(cur));cur.setDate(cur.getDate()+1);}
@@ -967,12 +1011,13 @@ function buildHeatmap(){
     days.forEach(function(day){
       var dow=day.getDay();
       if(dow===1&&col.children.length>0){wd.appendChild(col);col=document.createElement('div');col.className='hm-col';}
-      var ds=fd(day);var cnt=HM[ds]||0;
-      var cell=document.createElement('div');cell.className='hm-cell';cell.style.background=gc(cnt);cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':''):': no trip');
+      var ds=fd(day);var info=dayInfo[ds];var cnt=info?info.count:0;
+      var cell=document.createElement('div');cell.className='hm-cell';cell.style.background=gc(info);
+      cell.title=ds+(cnt?': '+cnt+' trip'+(cnt>1?'s':'')+(info.multi?' (multi-day)':''):': no trip');
       if(cnt>0){
         cell.classList.add('has-trip');
         cell.addEventListener('click', (function(dateStr){
-          return function(){ goToFilteredLog(function(e){ return fmtDate(e.startDate)===dateStr; }, 'Trips on '+dateStr); };
+          return function(){ goToFilteredLog(function(e){ return entryCoversDate(e,dateStr); }, 'Trips on '+dateStr); };
         })(ds));
       }
       col.appendChild(cell);
@@ -980,10 +1025,40 @@ function buildHeatmap(){
     if(col.children.length>0)wd.appendChild(col);
     mDiv.appendChild(wd);container.appendChild(mDiv);
   });
-  var tripDays=Object.keys(HM).filter(function(k){return HM[k]>0;}).length;
+  var tripDays=Object.keys(dayInfo).filter(function(k){return dayInfo[k].count>0;}).length;
   document.getElementById('hm-insights').innerHTML=
     '<div class="pill"><strong>'+tripDays+'</strong> unique trip days (2020&ndash;2026)</div>'+
-    '<div class="pill">Total: <strong>497</strong> logged passages</div>';
+    '<div class="pill">Total: <strong>'+totalLabel+'</strong> logged passages</div>';
+}
+/* Fast initial paint from the static baked HM (date->count only, no
+   multi-day span info available until a live refresh). */
+function buildHeatmap(){
+  var dayInfo={};
+  Object.keys(HM).forEach(function(ds){ dayInfo[ds]={count:HM[ds],multi:false}; });
+  renderHeatmapGrid(dayInfo, '497');
+}
+/* True live rebuild from real entries — expands multi-day trips across
+   every date they span, so deletions/edits in the sheet are reflected and
+   multi-day trips highlight every day they cover, not just the start date. */
+function rebuildHeatmapFromEntries(entries){
+  var dayInfo={};
+  entries.forEach(function(e){
+    var sd=fmtDate(e.startDate);
+    if(!sd) return;
+    var isMulti=!!e.multiDay;
+    var ed=(isMulti && e.endDate) ? fmtDate(e.endDate) : sd;
+    if(ed<sd) ed=sd;
+    var cur=new Date(sd+'T00:00:00');
+    var endD=new Date(ed+'T00:00:00');
+    while(cur<=endD){
+      var ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      if(!dayInfo[ds])dayInfo[ds]={count:0,multi:false};
+      dayInfo[ds].count++;
+      if(isMulti)dayInfo[ds].multi=true;
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+  renderHeatmapGrid(dayInfo, entries.length);
 }
 buildHeatmap();
 window.CH={};
@@ -1008,10 +1083,8 @@ window.CH['wind-dec']=new Chart(document.getElementById('ch-wind-dec'),{
     onClick:function(evt,elements){
       if(!elements.length)return;
       var idx=elements[0].index;
-      var ranges=[[0,5],[6,10],[11,15],[16,20]];
-      var lo=ranges[idx][0], hi=ranges[idx][1];
-      var label=window.CH['wind-dec'].data.labels[idx];
-      goToFilteredLog(function(e){var wk=Number(e.windKnots);return !isNaN(wk)&&wk>=lo&&wk<=hi;}, label+' trips');
+      var b=WIND_BUCKETS[idx];
+      goToFilteredLog(function(e){return windBucketLabel(e)===b.label;}, b.label+' trips');
     }}
 });
 window.CH['wind-dir']=new Chart(document.getElementById('ch-wind-dir'),{
@@ -1048,7 +1121,7 @@ window.CH['annual']=new Chart(document.getElementById('ch-annual'),{
     }}
 });
 window.CH['vessel']=new Chart(document.getElementById('ch-vessel'),{
-  type:'doughnut',data:{labels:["Baby Blush (Volvo AD41A)", "Baby Blush (Mercruiser 6.2L)", "Highfield RIB", "Other"],datasets:[{data:[1335.7, 168.0, 131.3, 600.0],backgroundColor:[N,B,T,A],borderWidth:3,borderColor:'#fff'}]},
+  type:'doughnut',data:{labels:["Baby Blush (Twin Engine)", "Highfield RIB (Single Engine)", "Other"],datasets:[{data:[1503.7, 131.3, 600.0],backgroundColor:[N,T,A],borderWidth:3,borderColor:'#fff'}]},
   options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},
     onClick:function(evt,elements){
       if(!elements.length)return;
