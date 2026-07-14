@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.19 -->
+<!-- v1.21 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -59,12 +59,15 @@ nav{background:var(--navy);position:sticky;top:0;z-index:100}
 .tp-multi{background:var(--pill-multi);color:#fff}
 .tp-gt60{background:var(--flag-gt60);color:#fff}
 .tp-night{background:var(--flag-night);color:#fff}
+.trip-pills-squares{display:flex;gap:24px;flex-wrap:wrap}
 .trip-pills-circles{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
-.trip-pill.circle{flex-direction:column;justify-content:center;text-align:center;border-radius:50%;width:118px;height:118px;padding:10px;gap:2px}
-.trip-pill.circle .tp-icon{font-size:1.15rem}
-.trip-pill.circle .tp-num{font-size:1.25rem}
-.trip-pill.circle .tp-label{font-size:.66rem;line-height:1.15}
-.trip-pill.circle .tp-sub{font-size:.6rem}
+.trip-pill.square,.trip-pill.circle{flex-direction:column;justify-content:center;text-align:center;width:118px;height:118px;padding:10px;gap:2px}
+.trip-pill.square{border-radius:20px}
+.trip-pill.circle{border-radius:50%}
+.trip-pill.square .tp-icon,.trip-pill.circle .tp-icon{font-size:1.15rem}
+.trip-pill.square .tp-num,.trip-pill.circle .tp-num{font-size:1.25rem}
+.trip-pill.square .tp-label,.trip-pill.circle .tp-label{font-size:.66rem;line-height:1.15}
+.trip-pill.square .tp-sub,.trip-pill.circle .tp-sub{font-size:.6rem}
 .tp-icon{font-size:1.4rem;flex-shrink:0}
 .tp-num{font-size:1.2rem;font-weight:800;line-height:1}
 .tp-label{font-size:.78rem;font-weight:700}
@@ -281,8 +284,8 @@ tbody tr.clickable:hover{background:#dae8f5!important}
   <div class="pill-groups">
     <div class="pill-group">
       <div class="pill-group-label">By duration</div>
-      <div class="trip-pills">
-        <div class="trip-pill tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
+      <div class="trip-pills trip-pills-squares">
+        <div class="trip-pill square tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
           <span class="tp-icon">&#9728;</span>
           <div class="pill-content">
             <span class="tp-num" id="p-day">494</span>
@@ -290,7 +293,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
             <span class="tp-sub"><span id="p-day-hrs">1,635</span> hrs</span>
           </div>
         </div>
-        <div class="trip-pill tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
+        <div class="trip-pill square tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
           <span class="tp-icon">&#128197;</span>
           <div class="pill-content">
             <span class="tp-num" id="p-multi">3</span>
@@ -505,11 +508,27 @@ tbody tr.clickable:hover{background:#dae8f5!important}
         <div class="track-map" id="ql-map-wrap2">
           <canvas id="ql-map2"></canvas>
         </div>
+        <div style="margin:10px 0">
+          <label style="font-size:.78rem;font-weight:700;color:var(--navy);display:block;margin-bottom:5px">Vessel</label>
+          <select id="ql-vessel-select" style="width:100%;padding:10px;border:1.5px solid #D0DCE8;border-radius:8px;font-size:.9rem">
+            <option value="29' Sunseeker">29' Sunseeker (Baby Blush)</option>
+            <option value="22' Highfield">22' Highfield (RIB)</option>
+          </select>
+        </div>
         <div id="ql-saving-status" style="text-align:center;font-size:.8rem;color:var(--muted);min-height:20px;margin-bottom:8px"></div>
         <button class="btn-fill" onclick="qlCommit()">&#10003; Commit Quick Log</button>
         <div style="margin-top:10px">
           <button class="btn-gpx" onclick="qlDiscardConfirm()" style="border-color:var(--red);color:var(--red)">&#10005; Discard &amp; Exit</button>
         </div>
+      </div>
+
+      <!-- SAVED STATE -->
+      <div id="ql-saved-view" style="display:none;text-align:center;padding:30px 0">
+        <div style="font-size:2.4rem;margin-bottom:8px">&#9989;</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--navy);margin-bottom:6px">Saved to Log Book</div>
+        <div style="font-size:.85rem;color:var(--muted);margin-bottom:24px">Your trip is safely logged.</div>
+        <button class="btn-fill" onclick="qlFullReset();showView('quicklog',document.querySelector('.nav-tab[onclick*=quicklog]'))">&#9654; Log Another Trip</button>
+        <div style="margin-top:10px"><button class="btn-gpx" onclick="qlFullReset();showView('dashboard',document.querySelector('.nav-tab'))">&larr; Back to Dashboard</button></div>
       </div>
     </div>
     </div><!-- /ql-content -->
@@ -583,7 +602,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.19';
+var APP_VERSION = '1.21';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -1316,6 +1335,7 @@ function qlStop(){
   clearInterval(QL.timerInterval);
 
   var endTime = new Date();
+  QL.endTime = endTime;
   QL.endTimeStr = qlFmtTime(endTime);
   var elapsed = endTime - QL.startTime;
   var durHrs = Math.round(elapsed/1000/60/60*100)/100;
@@ -1328,6 +1348,8 @@ function qlStop(){
   // Show summary
   document.getElementById('ql-tracking').style.display='none';
   document.getElementById('ql-summary-view').style.display='block';
+  var vSel=document.getElementById('ql-vessel-select');
+  if(vSel){ try{ var lastV=localStorage.getItem('rya_last_vessel'); if(lastV) vSel.value=lastV; }catch(e){} }
   document.getElementById('qs-start').textContent = QL.startTimeStr;
   document.getElementById('qs-end').textContent = QL.endTimeStr;
   document.getElementById('qs-dur').textContent = qlFmtDuration(elapsed)+' ('+durHrs+' hrs)';
@@ -1418,60 +1440,77 @@ function qlSaveGPXtoDrive(cb){
       if(cb) cb(d.url);
     })
     .catch(function(e){
-      if(btn){btn.textContent='✗ Save failed - download instead';btn.disabled=false;}
-      qlDownloadGPX();
+      if(btn){btn.textContent='GPX save failed — trip will still be logged';btn.style.color='var(--red)';btn.disabled=false;}
       if(cb) cb(null);
     });
 }
 
+function qlNightHeuristic(startTime){
+  var h=startTime.getHours();
+  return (h<6 || h>=21) ? 'Yes' : 'No';
+}
+function qlBuildDetails(){
+  var from=QL.startAddress||'start position';
+  var to=QL.endAddress||'end position';
+  var nm=Math.round(QL.totalNm*10)/10;
+  return 'Passage from '+from+' to '+to+' ('+nm+' nm), logged via Quick Log GPS tracking.';
+}
 function qlCommit(){
-  appConfirm('Commit this trip to your log? GPX track will be saved automatically.',{title:'Commit Trip',icon:'&#9989;'}).then(function(ok){
+  appConfirm('Commit this trip to your log? It will be saved directly — no further steps needed.',{title:'Commit Trip',icon:'&#9989;'}).then(function(ok){
   if(!ok) return;
-  var btn = document.querySelector('.btn-fill');
+  var btn = document.querySelector('#ql-summary-view .btn-fill');
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
   var status = document.getElementById('ql-saving-status');
+  var vsel = document.getElementById('ql-vessel-select').value;
+  try{ localStorage.setItem('rya_last_vessel', vsel); }catch(e){}
 
-  function doFillAndSave(){
-    var p = window._qlPrefill;
-    if(!p) return;
-    // Switch to manual log entry with passcode
-    showView('entry', document.querySelector('.nav-tab[onclick*=entry]'));
-    if(document.getElementById('entry-form').style.display!=='none'){
-      qlDoFill();
-    } else {
-      window._qlPendingFill = true;
-    }
+  function submitDirect(gpxUrl){
+    var sd = QL.startTime.toISOString().slice(0,10);
+    var ed = QL.endTime ? QL.endTime.toISOString().slice(0,10) : sd;
+    var durHrs = Math.round((new Date()-QL.startTime)/1000/60/60*100)/100;
+    var trip = {
+      startDate: sd, endDate: ed, from: QL.startAddress||'', to: QL.endAddress||'',
+      tripType: 'Return', vessel: vsel,
+      boatName: vsel.indexOf('Highfield')>-1 ? 'RIB' : 'Baby Blush',
+      engines: vsel.indexOf('Highfield')>-1 ? 'Single Engine' : 'Twin Engine',
+      startTime: QL.startTimeStr, endTime: QL.endTimeStr,
+      duration: durHrs, miles: Math.round(QL.totalNm*10)/10,
+      night: qlNightHeuristic(QL.startTime),
+      gt60: QL.totalNm>60 ? 'Yes' : 'No',
+      gpxUrl: gpxUrl||'',
+      weather:'', windKnots:'', windDir:'',
+      details: qlBuildDetails()
+    };
+    fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addTrip',trip:trip})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.error) throw new Error(d.error);
+        if(status) status.textContent='';
+        loadSummary();
+        qlShowSavedState();
+      })
+      .catch(function(e){
+        if(status){status.textContent='';}
+        if(btn){btn.textContent='&#10003; Commit Quick Log';btn.disabled=false;}
+        appAlert('The trip could not be saved: '+e.message+'. Your tracking data is still here — tap Commit to try again.',{title:'Save Failed',icon:'&#9888;',danger:true});
+      });
   }
 
-  // Save GPX to Drive first if we have track data
   if(QL.track.length > 0){
     if(status) status.textContent = 'Saving GPX track to Google Drive...';
     qlSaveGPXtoDrive(function(url){
-      if(status) status.textContent = url ? 'GPX saved ✓' : 'GPX saved locally only';
-      window._qlPrefill = {
-        date: QL.startTime.toISOString().slice(0,10),
-        startTime: QL.startTimeStr,
-        endTime: QL.endTimeStr,
-        miles: Math.round(QL.totalNm*10)/10,
-        dur: Math.round((new Date()-QL.startTime)/1000/60/60*100)/100,
-        from: QL.startAddress,
-        to: QL.endAddress,
-      };
-      setTimeout(doFillAndSave, 500);
+      if(status) status.textContent = 'Saving trip to log...';
+      submitDirect(url);
     });
   } else {
-    window._qlPrefill = {
-      date: QL.startTime.toISOString().slice(0,10),
-      startTime: QL.startTimeStr,
-      endTime: QL.endTimeStr,
-      miles: Math.round(QL.totalNm*10)/10,
-      dur: Math.round((new Date()-QL.startTime)/1000/60/60*100)/100,
-      from: QL.startAddress,
-      to: QL.endAddress,
-    };
-    doFillAndSave();
+    if(status) status.textContent = 'Saving trip to log...';
+    submitDirect(null);
   }
   });
+}
+function qlShowSavedState(){
+  document.getElementById('ql-summary-view').style.display='none';
+  document.getElementById('ql-saved-view').style.display='block';
 }
 
 function qlDiscardConfirm(){
@@ -1493,6 +1532,7 @@ function qlFullReset(){
   window._qlGpxUrl='';window._qlPrefill=null;
   // Reset UI
   document.getElementById('ql-summary-view').style.display='none';
+  document.getElementById('ql-saved-view').style.display='none';
   document.getElementById('ql-tracking').style.display='none';
   document.getElementById('ql-ready').style.display='block';
   document.getElementById('ql-nm-display').textContent='0.00';
