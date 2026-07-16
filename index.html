@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.25 -->
+<!-- v1.26 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -613,7 +613,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
    If they don't match, we force-navigate to a cache-busted URL of ourself
    to pull the real current build. Guarded to run at most once per tab
    session so a genuinely unreachable version.json can't cause a loop. */
-var APP_VERSION = '1.25';
+var APP_VERSION = '1.26';
 document.getElementById('app-version-tag') && (document.getElementById('app-version-tag').textContent = 'v'+APP_VERSION);
 
 (function checkForStaleCache(){
@@ -1689,35 +1689,38 @@ function openTripPanel(e){
       L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{
         attribution:'&copy; <a href="http://www.openseamap.org">OpenSeaMap</a>',opacity:1
       }).addTo(_tpMap);
-      // Fetch and parse GPX
-      var dlUrl = e.gpxUrl.replace('/view','/export?format=gpx').replace('open?id=','uc?export=download&id=');
-      // Use Drive download URL
-      if(e.gpxUrl.indexOf('drive.google.com')>-1){
-        var id = e.gpxUrl.match(/[-\w]{25,}/);
-        if(id) dlUrl = 'https://drive.google.com/uc?export=download&id='+id[0];
+      // Fetch and parse GPX — via our own backend (getGpx action), not a
+      // direct fetch() of the Drive URL, since Drive blocks cross-origin
+      // fetches from other domains via CORS. jsonp() sidesteps that by
+      // using script-tag injection instead of a real fetch request.
+      var driveId = (e.gpxUrl.match(/[-\w]{25,}/) || [])[0];
+      if(!driveId){
+        mapEl.style.display='none';
+        mapPh.innerHTML='<div class="big">&#128506;</div><div>Could not load GPX track</div>';
+        mapPh.style.display='block';
+        return;
       }
-      fetch(dlUrl)
-        .then(function(r){return r.text();})
-        .then(function(gpxText){
-          var parser = new DOMParser();
-          var gpxDoc = parser.parseFromString(gpxText,'application/xml');
-          var pts = gpxDoc.querySelectorAll('trkpt');
-          var latlngs = [];
-          pts.forEach(function(pt){
-            latlngs.push([parseFloat(pt.getAttribute('lat')),parseFloat(pt.getAttribute('lon'))]);
-          });
-          if(latlngs.length>1){
-            var poly = L.polyline(latlngs,{color:'#2E75B6',weight:3}).addTo(_tpMap);
-            L.circleMarker(latlngs[0],{radius:7,fillColor:'#00B050',color:'#fff',weight:2,fillOpacity:1}).addTo(_tpMap).bindPopup('Start');
-            L.circleMarker(latlngs[latlngs.length-1],{radius:7,fillColor:'#C00020',color:'#fff',weight:2,fillOpacity:1}).addTo(_tpMap).bindPopup('End');
-            _tpMap.fitBounds(poly.getBounds(),{padding:[20,20]});
-          }
-        })
-        .catch(function(){
+      jsonp(SCRIPT_URL+'?action=getGpx&id='+driveId, function(err, d){
+        if(err || !d || d.error || !d.gpx){
           mapEl.style.display='none';
           mapPh.innerHTML='<div class="big">&#128506;</div><div>Could not load GPX track</div>';
           mapPh.style.display='block';
+          return;
+        }
+        var parser = new DOMParser();
+        var gpxDoc = parser.parseFromString(d.gpx,'application/xml');
+        var pts = gpxDoc.querySelectorAll('trkpt');
+        var latlngs = [];
+        pts.forEach(function(pt){
+          latlngs.push([parseFloat(pt.getAttribute('lat')),parseFloat(pt.getAttribute('lon'))]);
         });
+        if(latlngs.length>1){
+          var poly = L.polyline(latlngs,{color:'#2E75B6',weight:3}).addTo(_tpMap);
+          L.circleMarker(latlngs[0],{radius:7,fillColor:'#00B050',color:'#fff',weight:2,fillOpacity:1}).addTo(_tpMap).bindPopup('Start');
+          L.circleMarker(latlngs[latlngs.length-1],{radius:7,fillColor:'#C00020',color:'#fff',weight:2,fillOpacity:1}).addTo(_tpMap).bindPopup('End');
+          _tpMap.fitBounds(poly.getBounds(),{padding:[20,20]});
+        }
+      });
     },200);
   } else {
     mapEl.style.display = 'none';
