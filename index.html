@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<!-- v1.30 -->
+<!-- v1.31 -->
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>RYA Skipper Log — Steve Harding</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -83,6 +83,7 @@ nav{background:var(--bb-topbar);position:sticky;top:0;z-index:100;border-bottom:
 .trip-pill.square .tp-label,.trip-pill.circle .tp-label{font-size:.66rem;line-height:1.15}
 .trip-pill.square .tp-sub,.trip-pill.circle .tp-sub{font-size:.6rem}
 .tp-icon{font-size:1.4rem;flex-shrink:0}
+.tp-icon svg{display:block;flex-shrink:0}
 .tp-num{font-size:1.2rem;font-weight:800;line-height:1}
 .tp-label{font-size:.78rem;font-weight:700}
 .tp-sub{font-size:.65rem;opacity:.8;margin-top:2px}
@@ -300,7 +301,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
       <div class="pill-group-label">By duration</div>
       <div class="trip-pills trip-pills-squares">
         <div class="trip-pill square tp-day" onclick="goToFilteredLog(function(e){return !e.multiDay;}, 'Day trips')">
-          <span class="tp-icon">&#9728;</span>
+          <span class="tp-icon"><svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="24" r="10" fill="none" stroke="#4C7C31" stroke-width="6"/><circle cx="10" cy="24" r="2.6" fill="#4C7C31"/><circle cx="30" cy="24" r="2.6" fill="#4C7C31"/><line x1="20" y1="14" x2="20" y2="6" stroke="#4C7C31" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="5" r="3.4" fill="#4C7C31"/></svg></span>
           <div class="pill-content">
             <span class="tp-num" id="p-day">494</span>
             <span class="tp-label">Day-Trip Passages</span>
@@ -308,7 +309,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
           </div>
         </div>
         <div class="trip-pill square tp-multi" onclick="goToFilteredLog(function(e){return !!e.multiDay;}, 'Multi-day trips')">
-          <span class="tp-icon">&#128197;</span>
+          <span class="tp-icon"><svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="24" r="10" fill="none" stroke="#B02418" stroke-width="6"/><circle cx="10" cy="24" r="2.6" fill="#B02418"/><circle cx="30" cy="24" r="2.6" fill="#B02418"/><line x1="20" y1="14" x2="20" y2="6" stroke="#B02418" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="5" r="3.4" fill="#B02418"/></svg></span>
           <div class="pill-content">
             <span class="tp-num" id="p-multi">3</span>
             <span class="tp-label">Multi-Day Trips</span>
@@ -321,7 +322,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
       <div class="pill-group-label">By Passage Type <span class="pill-group-note">(can overlap with either duration)</span></div>
       <div class="trip-pills trip-pills-circles">
         <div class="trip-pill circle tp-gt60" onclick="goToFilteredLog(function(e){return e.gt60==='Yes';}, '>60nm passages')">
-          <span class="tp-icon">&#127758;</span>
+          <span class="tp-icon"><svg viewBox="0 0 40 40" width="22" height="22" style="filter:drop-shadow(0 0 1.5px rgba(255,255,255,.9)) drop-shadow(0 0 1.5px rgba(255,255,255,.9))"><circle cx="20" cy="24" r="10" fill="none" stroke="#ED7D31" stroke-width="6"/><circle cx="10" cy="24" r="2.6" fill="#ED7D31"/><circle cx="30" cy="24" r="2.6" fill="#ED7D31"/><line x1="20" y1="14" x2="20" y2="6" stroke="#ED7D31" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="5" r="3.4" fill="#ED7D31"/></svg></span>
           <div class="pill-content">
             <span class="tp-num" id="p-gt60">3</span>
             <span class="tp-label">&gt;60nm Passages</span>
@@ -329,7 +330,7 @@ tbody tr.clickable:hover{background:#dae8f5!important}
           </div>
         </div>
         <div class="trip-pill circle tp-night" onclick="goToFilteredLog(function(e){return e.night==='Yes';}, 'Night passages')">
-          <span class="tp-icon">&#127769;</span>
+          <span class="tp-icon"><svg viewBox="0 0 40 40" width="22" height="22" style="filter:drop-shadow(0 0 1.5px rgba(255,255,255,.9)) drop-shadow(0 0 1.5px rgba(255,255,255,.9))"><circle cx="20" cy="24" r="10" fill="none" stroke="#111318" stroke-width="6"/><circle cx="10" cy="24" r="2.6" fill="#111318"/><circle cx="30" cy="24" r="2.6" fill="#111318"/><line x1="20" y1="14" x2="20" y2="6" stroke="#111318" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="5" r="3.4" fill="#111318"/></svg></span>
           <div class="pill-content">
             <span class="tp-num" id="p-night">0</span>
             <span class="tp-label">Night Passages</span>
